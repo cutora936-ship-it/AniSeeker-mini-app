@@ -25,7 +25,7 @@ export function CharacterDetail({ character, hidden, onOpenStrategy }: {
 
   return (
     <section className={hasAbout ? 'subscreen detail detail--with-about' : 'subscreen detail'}
-      aria-labelledby="detail-title" hidden={hidden}>
+      data-theme={character.theme} aria-labelledby="detail-title" hidden={hidden}>
       <DossierLabel character={character} />
       <h1 id="detail-title" ref={title} tabIndex={-1}>{character.name}</h1>
       {character.portrait ? (

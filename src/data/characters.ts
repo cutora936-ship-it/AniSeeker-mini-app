@@ -1,3 +1,4 @@
+import ayanokojiPortrait from '../assets/kiyotaka-ayanokoji.png';
 import lightYagamiPortrait from '../assets/light-yagami.webp';
 
 export interface Character {
@@ -8,6 +9,7 @@ export interface Character {
   description: string;
   about?: readonly string[];
   portrait?: string;
+  theme?: 'crimson';
   strategy?: boolean;
 }
 
@@ -27,11 +29,18 @@ export const characters: readonly Character[] = [
     ],
   },
   {
-    id: 'ren',
+    id: 'kiyotaka-ayanokoji',
     dossier: '002',
-    name: 'Рэн',
-    work: 'Тестовая карточка',
-    description: 'Замечает детали и умеет слушать.',
+    name: 'Киётака Аянокоджи',
+    work: 'Класс превосходства',
+    description: 'Наблюдательность и анализ поведения людей.',
+    portrait: ayanokojiPortrait,
+    theme: 'crimson',
+    about: [
+      'Киётака Аянокоджи — главный герой аниме «Класс превосходства». В школе он держится в стороне и скрывает свои способности. Его сильные стороны — наблюдательность, самообладание и умение анализировать поступки людей.',
+      'В сложных ситуациях Аянокоджи внимательно следит за тем, что люди говорят и делают. Он сопоставляет детали, замечает противоречия и учитывает, как события могут повлиять на решения окружающих.',
+      'Это досье посвящено наблюдательности и анализу поведения. Здесь можно разобраться, как замечать важные детали, отличать факты от догадок и рассматривать несколько объяснений одного поступка.',
+    ],
   },
   {
     id: 'mika',
