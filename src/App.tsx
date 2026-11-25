@@ -1,4 +1,5 @@
-import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { Icon } from './components/Icon';
 import { Navigation, type Tab } from './components/Navigation';
 import { characters, searchCharacters, type Character } from './data/characters';
@@ -16,7 +17,6 @@ const MatchGame = lazy(() => import('./screens/MatchGame'));
 
 export function App() {
   const [tab, setTab] = useState<Tab>('home');
-  const [activeIndex, setActiveIndex] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [detail, setDetail] = useState<Character | null>(null);
@@ -27,8 +27,9 @@ export function App() {
   const searchInput = useRef<HTMLInputElement>(null);
   const actionButton = useRef<HTMLButtonElement>(null);
   const restoreActionFocus = useRef(false);
-  const { main, navigate } = usePageMotion();
+  const feedIndex = useRef(0);
   const searchShown = searchOpen && !detail;
+  const main = usePageMotion(activity ?? (detail ? 'detail' : searchShown ? 'search' : tab));
 
   const goBack = useCallback(() => {
     if (profileEditor !== 'closed') {
@@ -36,34 +37,30 @@ export function App() {
       return;
     }
     if (activity) {
-      navigate('pop', () => {
-        setActivity(null);
-        setMatchPlaying(false);
-      });
+      setActivity(null);
+      setMatchPlaying(false);
       return;
     }
-    navigate(detail ? 'pop' : 'search-out', () => {
-      restoreActionFocus.current = true;
-      if (detail) {
-        setDetail(null);
-      } else {
-        setSearchOpen(false);
-        setQuery('');
-      }
-    });
-  }, [detail, activity, profileEditor, navigate]);
+    restoreActionFocus.current = true;
+    if (detail) {
+      setDetail(null);
+    } else {
+      setSearchOpen(false);
+      setQuery('');
+    }
+  }, [detail, activity, profileEditor]);
 
   const overlayOpen = Boolean(detail || searchOpen || profileEditor !== 'closed');
   const user = useTelegram(overlayOpen ? goBack : undefined);
 
-  useEffect(() => {
-    if (searchOpen && !detail) {
+  useLayoutEffect(() => {
+    if (searchShown) {
       searchInput.current?.focus({ preventScroll: true });
     } else if (!detail && restoreActionFocus.current) {
       actionButton.current?.focus({ preventScroll: true });
     }
     restoreActionFocus.current = false;
-  }, [detail, searchOpen]);
+  }, [detail, searchShown]);
 
   useEffect(() => {
     if (!overlayOpen) return;
@@ -78,31 +75,33 @@ export function App() {
     return () => window.removeEventListener('keydown', handleEscape);
   }, [goBack, overlayOpen]);
 
-  function changeTab(next: Tab) {
-    navigate('tab', () => {
-      setTab(next);
-      setDetail(null);
-      setActivity(null);
-      setMatchPlaying(false);
-      setProfileEditor('closed');
-      setSearchOpen(false);
-      setQuery('');
-    });
-  }
+  const changeTab = useCallback((next: Tab) => {
+    setTab(next);
+    setDetail(null);
+    setActivity(null);
+    setMatchPlaying(false);
+    setProfileEditor('closed');
+    setSearchOpen(false);
+    setQuery('');
+  }, []);
+
+  const rememberFeedIndex = useCallback((index: number) => {
+    feedIndex.current = index;
+  }, []);
 
   function openSearch() {
-    navigate('search-in', () => setSearchOpen(true));
-    searchInput.current?.focus({ preventScroll: true });
+    // Commit the input before the tap loses activation in mobile WebViews.
+    flushSync(() => setSearchOpen(true));
   }
 
-  const favoriteCharacters = favoriteIds
+  const favoriteCharacters = useMemo(() => favoriteIds
     .map((id) => characters.find((character) => character.id === id))
-    .filter((character): character is Character => Boolean(character));
-  const results = searchOpen ? searchCharacters(characters, query) : [];
+    .filter((character): character is Character => Boolean(character)), [favoriteIds]);
+  const results = searchShown ? searchCharacters(characters, query) : [];
   const listProps = {
     favoriteIds,
     onFavorite: toggleFavorite,
-    onOpen: (character: Character) => navigate('push', () => setDetail(character)),
+    onOpen: setDetail,
   };
   const availableActivity = detail?.observation ? 'match' : detail?.strategy ? 'strategy' : null;
 
@@ -134,9 +133,7 @@ export function App() {
         {detail ? (
           <>
             <CharacterDetail character={detail} hidden={activity !== null}
-              onOpenActivity={availableActivity
-                ? () => navigate('push', () => setActivity(availableActivity))
-                : undefined} />
+              onOpenActivity={availableActivity ? () => setActivity(availableActivity) : undefined} />
             {activity && (
               <Suspense fallback={<p className="subscreen" role="status">Загрузка тренажёра…</p>}>
                 {activity === 'strategy' ? <Strategy onBack={goBack} /> : (
@@ -149,7 +146,7 @@ export function App() {
           <section className="subscreen" aria-labelledby="search-title">
             <h1 id="search-title">Поиск</h1>
             {results.length ? (
-              <CharacterList characters={results} animateRows {...listProps} />
+              <CharacterList characters={results} {...listProps} />
             ) : (
               <EmptyState icon="search" title="Персонажи не найдены">
                 Попробуйте изменить запрос.
@@ -170,7 +167,7 @@ export function App() {
         ) : tab === 'profile' ? (
           <Profile user={user} editor={profileEditor} onEditorChange={setProfileEditor} />
         ) : (
-          <Feed characters={characters} activeIndex={activeIndex} setActiveIndex={setActiveIndex}
+          <Feed characters={characters} initialIndex={feedIndex.current} onIndexChange={rememberFeedIndex}
             {...listProps} />
         )}
       </main>

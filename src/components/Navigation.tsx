@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Icon, type IconName } from './Icon';
 
 export type Tab = 'home' | 'favorites' | 'profile';
@@ -8,7 +9,7 @@ const tabs: readonly { id: Tab; label: string; icon: IconName }[] = [
   { id: 'profile', label: 'Профиль', icon: 'user' },
 ];
 
-export function Navigation({ current, onChange }: { current: Tab; onChange: (tab: Tab) => void }) {
+export const Navigation = memo(function Navigation({ current, onChange }: { current: Tab; onChange: (tab: Tab) => void }) {
   return (
     <nav className="navigation glass" aria-label="Основная навигация" data-active={current}>
       <span className="navigation__track" aria-hidden="true"><span className="navigation__indicator" /></span>
@@ -21,4 +22,4 @@ export function Navigation({ current, onChange }: { current: Tab; onChange: (tab
       ))}
     </nav>
   );
-}
+});

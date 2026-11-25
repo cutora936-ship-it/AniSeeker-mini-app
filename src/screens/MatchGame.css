@@ -226,8 +226,7 @@
 
 .match-new-record svg { width: 1.15rem; height: 1.15rem; }
 
-.match[data-match-phase="playing"] { animation: soft-arrive .2s var(--ease) both; }
-.match[data-match-phase="results"] { animation: dialog-arrive .24s var(--ease) both; }
+.match[data-match-phase="results"] { animation: soft-arrive .18s var(--ease) both; }
 
 @media (max-height: 640px) {
   .match--playing { padding-block: .12rem; }

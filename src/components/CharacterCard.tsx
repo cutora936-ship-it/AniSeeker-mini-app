@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { memo } from 'react';
 import type { Character } from '../data/characters';
 import { Icon } from './Icon';
 
@@ -29,29 +29,19 @@ export function FavoriteButton({ saved, name, onClick }: {
   name: string;
   onClick: () => void;
 }) {
-  const bookmark = useRef<Animation | null>(null);
-
   return (
     <button type="button" className="icon-button glass favorite-button" aria-pressed={saved}
-      aria-label={`Избранное: ${name}`} onClick={(event) => {
-        onClick();
-        bookmark.current?.cancel();
-        if (saved || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-        bookmark.current = event.currentTarget.querySelector('svg')?.animate?.(
-          [{ scale: '1' }, { scale: '1.14', offset: .47 }, { scale: '1' }],
-          { duration: 205, easing: 'cubic-bezier(.2,.72,.25,1)' },
-        ) ?? null;
-      }}>
+      aria-label={`Избранное: ${name}`} onClick={onClick}>
       <Icon name="bookmark" />
     </button>
   );
 }
 
-export function CharacterCard({ character, saved, onFavorite, onOpen }: {
+export const CharacterCard = memo(function CharacterCard({ character, saved, onFavorite, onOpen }: {
   character: Character;
   saved: boolean;
-  onFavorite: () => void;
-  onOpen: () => void;
+  onFavorite: (id: string) => void;
+  onOpen: (character: Character) => void;
 }) {
   const { portrait } = character;
 
@@ -70,13 +60,13 @@ export function CharacterCard({ character, saved, onFavorite, onOpen }: {
             <h2 id={`name-${character.id}`}>{character.name}</h2>
             <p className="character-card__description">{character.description}</p>
           </div>
-          <FavoriteButton name={character.name} saved={saved} onClick={onFavorite} />
+          <FavoriteButton name={character.name} saved={saved} onClick={() => onFavorite(character.id)} />
         </div>
-        <button type="button" className="study-button glass" onClick={onOpen}>
+        <button type="button" className="study-button glass" onClick={() => onOpen(character)}>
           Изучить персонажа
           <Icon name="right" />
         </button>
       </div>
     </article>
   );
-}
+});
