@@ -46,7 +46,7 @@ export function CharacterCard({ character, saved, onFavorite, onOpen }: {
 
   return (
     <article className={portrait ? 'character-card character-card--with-portrait' : 'character-card'}
-      aria-labelledby={`name-${character.id}`}>
+      data-theme={character.theme} aria-labelledby={`name-${character.id}`}>
       {portrait ? (
         <img className="character-card__portrait" src={portrait} alt="" fetchPriority="high" />
       ) : (
