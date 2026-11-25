@@ -83,16 +83,11 @@
   box-shadow: inset 0 1px 2px #f7e5ff38, 0 .7rem 2.7rem #09050e97;
 }
 
-.profile-editor[open] { animation: dialog-arrive .235s var(--ease) both; }
+.profile-editor[open] { animation: soft-arrive .16s var(--ease) both; }
 
 .profile-editor::backdrop {
   background: rgb(12 8 19 / 74%);
-  backdrop-filter: blur(4px);
-  animation: backdrop-arrive .2s var(--ease) both;
 }
-
-.profile-editor[data-closing="true"]::backdrop { animation: backdrop-leave .185s ease-in both; }
-@keyframes backdrop-leave { to { opacity: 0; } }
 
 .profile-editor__form {
   display: grid;

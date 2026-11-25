@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 const storageKey = 'aniseeker:favorites:v1';
 
@@ -25,11 +25,11 @@ export function useFavorites() {
     }
   }, [favoriteIds]);
 
-  function toggleFavorite(id: string) {
+  const toggleFavorite = useCallback((id: string) => {
     setFavoriteIds((current) =>
       current.includes(id) ? current.filter((favorite) => favorite !== id) : [...current, id],
     );
-  }
+  }, []);
 
   return { favoriteIds, toggleFavorite };
 }

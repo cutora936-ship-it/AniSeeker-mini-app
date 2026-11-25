@@ -1,19 +1,19 @@
-import { useLayoutEffect, useRef, type KeyboardEvent } from 'react';
+import { useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { CharacterCard } from '../components/CharacterCard';
 import { Icon } from '../components/Icon';
 import type { Character } from '../data/characters';
 
-export function Feed({ characters, activeIndex, setActiveIndex, favoriteIds, onFavorite, onOpen }: {
+export function Feed({ characters, initialIndex, onIndexChange, favoriteIds, onFavorite, onOpen }: {
   characters: readonly Character[];
-  activeIndex: number;
-  setActiveIndex: (index: number) => void;
+  initialIndex: number;
+  onIndexChange: (index: number) => void;
   favoriteIds: readonly string[];
   onFavorite: (id: string) => void;
   onOpen: (character: Character) => void;
 }) {
   const feed = useRef<HTMLDivElement>(null);
-
-  const entryIndex = useRef(activeIndex);
+  const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const entryIndex = useRef(initialIndex);
 
   useLayoutEffect(() => {
     const viewport = feed.current;
@@ -42,6 +42,7 @@ export function Feed({ characters, activeIndex, setActiveIndex, favoriteIds, onF
     }
 
     setActiveIndex(index);
+    onIndexChange(index);
   }
 
   function onFeedKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -69,7 +70,7 @@ export function Feed({ characters, activeIndex, setActiveIndex, favoriteIds, onF
           <div className="feed__slide" key={character.id} inert={index !== activeIndex}
             aria-hidden={index !== activeIndex || undefined}>
             <CharacterCard character={character} saved={favoriteIds.includes(character.id)}
-              onFavorite={() => onFavorite(character.id)} onOpen={() => onOpen(character)} />
+              onFavorite={onFavorite} onOpen={onOpen} />
           </div>
         ))}
       </div>

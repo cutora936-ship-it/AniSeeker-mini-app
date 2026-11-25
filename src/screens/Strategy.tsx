@@ -179,7 +179,7 @@ export default function Strategy({ onBack }: { onBack: () => void }) {
         </button>
       </div>
       <p className="strategy-hint" id="strategy-hint" hidden={!hintOpen}>{puzzle.hint}</p>
-      <p className="strategy-live motion-notice" role="status">{reply ? 'Ход соперника…' : ''}</p>
+      <p className="strategy-live" role="status">{reply ? 'Ход соперника…' : ''}</p>
 
       {promotion.length > 0 && (
         <StrategyDialog title="Превращение пешки" cancel={() => setPromotion([])}>
