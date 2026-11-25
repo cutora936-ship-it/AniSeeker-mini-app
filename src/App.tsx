@@ -4,6 +4,7 @@ import { Navigation, type Tab } from './components/Navigation';
 import { characters, searchCharacters, type Character } from './data/characters';
 import { useFavorites } from './hooks/useFavorites';
 import { useTelegram } from './platform/telegram';
+import type { ProfileEditorState } from './profile/ProfileEditor';
 import { CharacterDetail } from './screens/CharacterDetail';
 import { Feed } from './screens/Feed';
 import { CharacterList, EmptyState } from './screens/Library';
@@ -20,12 +21,17 @@ export function App() {
   const [detail, setDetail] = useState<Character | null>(null);
   const [activity, setActivity] = useState<'strategy' | 'match' | null>(null);
   const [matchPlaying, setMatchPlaying] = useState(false);
+  const [profileEditor, setProfileEditor] = useState<ProfileEditorState>('closed');
   const { favoriteIds, toggleFavorite } = useFavorites();
   const searchInput = useRef<HTMLInputElement>(null);
   const actionButton = useRef<HTMLButtonElement>(null);
   const restoreActionFocus = useRef(false);
 
   const goBack = useCallback(() => {
+    if (profileEditor !== 'closed') {
+      if (profileEditor === 'editing') setProfileEditor('closed');
+      return;
+    }
     if (activity) {
       setActivity(null);
       setMatchPlaying(false);
@@ -39,9 +45,9 @@ export function App() {
     }
 
     restoreActionFocus.current = true;
-  }, [detail, activity]);
+  }, [detail, activity, profileEditor]);
 
-  const overlayOpen = Boolean(detail || searchOpen);
+  const overlayOpen = Boolean(detail || searchOpen || profileEditor !== 'closed');
   const user = useTelegram(overlayOpen ? goBack : undefined);
 
   useEffect(() => {
@@ -71,6 +77,7 @@ export function App() {
     setDetail(null);
     setActivity(null);
     setMatchPlaying(false);
+    setProfileEditor('closed');
     setSearchOpen(false);
     setQuery('');
   }
@@ -143,7 +150,7 @@ export function App() {
             )}
           </section>
         ) : tab === 'profile' ? (
-          <Profile user={user} />
+          <Profile user={user} editor={profileEditor} onEditorChange={setProfileEditor} />
         ) : (
           <Feed characters={characters} activeIndex={activeIndex} setActiveIndex={setActiveIndex}
             {...listProps} />
