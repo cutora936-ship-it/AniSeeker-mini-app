@@ -28,7 +28,11 @@ export function CharacterList({ characters, favoriteIds, onFavorite, onOpen }: {
       {characters.map((character) => (
         <li className="character-row glass" key={character.id}>
           <button type="button" className="character-row__open" onClick={() => onOpen(character)}>
-            <CharacterPlaceholder compact />
+            {character.portrait ? (
+              <img className="character-row__portrait" src={character.portrait} alt="" loading="lazy" />
+            ) : (
+              <CharacterPlaceholder compact />
+            )}
             <span className="character-row__labels">
               <strong>{character.name}</strong>
               <small>{character.work}</small>

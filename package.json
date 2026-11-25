@@ -10,10 +10,12 @@
     "dev": "vite",
     "typecheck": "tsc --noEmit",
     "build": "npm run typecheck && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:strategy": "node --experimental-strip-types --test scripts/strategy.test.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",
+    "chess.js": "^1.4.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

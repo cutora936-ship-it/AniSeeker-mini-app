@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from './components/Icon';
 import { Navigation, type Tab } from './components/Navigation';
 import { characters, searchCharacters, type Character } from './data/characters';
@@ -9,18 +9,25 @@ import { Feed } from './screens/Feed';
 import { CharacterList, EmptyState } from './screens/Library';
 import { Profile } from './screens/Profile';
 
+const Strategy = lazy(() => import('./screens/Strategy'));
+
 export function App() {
   const [tab, setTab] = useState<Tab>('home');
   const [activeIndex, setActiveIndex] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [detail, setDetail] = useState<Character | null>(null);
+  const [strategyOpen, setStrategyOpen] = useState(false);
   const { favoriteIds, toggleFavorite } = useFavorites();
   const searchInput = useRef<HTMLInputElement>(null);
   const actionButton = useRef<HTMLButtonElement>(null);
   const restoreActionFocus = useRef(false);
 
   const goBack = useCallback(() => {
+    if (strategyOpen) {
+      setStrategyOpen(false);
+      return;
+    }
     if (detail) {
       setDetail(null);
     } else {
@@ -29,7 +36,7 @@ export function App() {
     }
 
     restoreActionFocus.current = true;
-  }, [detail]);
+  }, [detail, strategyOpen]);
 
   const overlayOpen = Boolean(detail || searchOpen);
   const user = useTelegram(overlayOpen ? goBack : undefined);
@@ -59,6 +66,7 @@ export function App() {
   function changeTab(next: Tab) {
     setTab(next);
     setDetail(null);
+    setStrategyOpen(false);
     setSearchOpen(false);
     setQuery('');
   }
@@ -96,7 +104,15 @@ export function App() {
       </header>
       <main className="main">
         {detail ? (
-          <CharacterDetail character={detail} />
+          <>
+            <CharacterDetail character={detail} hidden={strategyOpen}
+              onOpenStrategy={detail.strategy ? () => setStrategyOpen(true) : undefined} />
+            {strategyOpen && (
+              <Suspense fallback={<p className="subscreen" role="status">Загрузка тренажёра…</p>}>
+                <Strategy onBack={goBack} />
+              </Suspense>
+            )}
+          </>
         ) : searchOpen ? (
           <section className="subscreen" aria-labelledby="search-title">
             <h1 id="search-title">Поиск</h1>

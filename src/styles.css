@@ -543,12 +543,19 @@ svg { display: block; width: 1.5rem; height: 1.5rem; flex: none; }
   text-align: start;
 }
 
-.placeholder--compact {
+.placeholder--compact,
+.character-row__portrait {
   width: 3rem;
   height: 3rem;
   flex: none;
   border-radius: .7rem;
   border: 1px solid var(--rim);
+}
+
+.character-row__portrait {
+  display: block;
+  object-fit: cover;
+  object-position: 54% 12%;
 }
 
 .placeholder--compact .placeholder__frame {
@@ -643,6 +650,42 @@ svg { display: block; width: 1.5rem; height: 1.5rem; flex: none; }
 .detail__about p + p { margin-top: .75rem; }
 .detail__materials p { margin-top: .25rem; }
 
+.detail__strategy {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .7rem;
+  width: 100%;
+  margin-top: .75rem;
+  padding: .8rem;
+  border-radius: 1.1rem;
+  text-align: start;
+}
+
+.detail__strategy:active {
+  border-color: var(--accent);
+}
+
+.detail__strategy-icon {
+  display: grid;
+  width: 2.6rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid var(--rim);
+  border-radius: .72rem;
+  background: #39284e;
+  color: #e4cfff;
+}
+
+.detail__strategy-copy {
+  display: grid;
+  gap: .18rem;
+}
+
+.detail__strategy-copy strong { font-size: 1.13rem; }
+.detail__strategy-copy > span { color: var(--muted); font-size: .9rem; line-height: 1.45; }
+.detail__strategy > svg { width: 1.1rem; height: 1.1rem; color: var(--accent); }
+
 @media (prefers-reduced-motion: no-preference) {
   .detail--with-about { scroll-behavior: smooth; }
 }
@@ -655,6 +698,7 @@ svg { display: block; width: 1.5rem; height: 1.5rem; flex: none; }
 
 @media (hover: hover) {
   .icon-button:hover { border-color: var(--accent); }
+  .detail__strategy:hover { border-color: var(--accent); }
   .study-button:hover { border-color: #f0d8ff; }
   .navigation__item:not([aria-current]):hover { background-color: rgb(222 193 255 / 9%); }
   .swipe-hint:hover, .character-row__open:hover { color: white; }

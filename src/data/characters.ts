@@ -8,6 +8,7 @@ export interface Character {
   description: string;
   about?: readonly string[];
   portrait?: string;
+  strategy?: boolean;
 }
 
 export const characters: readonly Character[] = [
@@ -18,6 +19,7 @@ export const characters: readonly Character[] = [
     work: 'Death Note',
     description: 'Стратегическое и аналитическое мышление.',
     portrait: lightYagamiPortrait,
+    strategy: true,
     about: [
       'Лайт Ягами — главный герой аниме «Тетрадь смерти». Одарённый школьник, обладающий выдающимся интеллектом, аналитическими способностями и стратегическим мышлением.',
       'Его отличает умение анализировать сложные ситуации, выстраивать многоходовые планы и предугадывать действия окружающих. Однако чрезмерная самоуверенность, гордыня и стремление к власти постепенно становятся его главными слабостями.',
