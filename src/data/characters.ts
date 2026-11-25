@@ -11,6 +11,8 @@ export interface Portrait {
   large: string;
 }
 
+export type Activity = 'strategy' | 'match' | 'mastermind';
+
 export interface Character {
   id: string;
   dossier: string;
@@ -22,6 +24,7 @@ export interface Character {
   theme?: 'crimson';
   strategy?: boolean;
   observation?: boolean;
+  mastermind?: boolean;
 }
 
 export const characters: readonly Character[] = [
@@ -33,6 +36,7 @@ export const characters: readonly Character[] = [
     description: 'Стратегическое и аналитическое мышление.',
     portrait: { thumbnail: lightYagamiThumb, medium: lightYagamiMedium, large: lightYagamiLarge },
     strategy: true,
+    mastermind: true,
     about: [
       'Лайт Ягами — главный герой аниме «Тетрадь смерти». Одарённый школьник, обладающий выдающимся интеллектом, аналитическими способностями и стратегическим мышлением.',
       'Его отличает умение анализировать сложные ситуации, выстраивать многоходовые планы и предугадывать действия окружающих. Однако чрезмерная самоуверенность, гордыня и стремление к власти постепенно становятся его главными слабостями.',

@@ -1,9 +1,10 @@
 import { useLayoutEffect, useRef } from 'react';
+import type { Activity } from '../data/characters';
 
-type Screen = 'home' | 'favorites' | 'profile' | 'search' | 'detail' | 'strategy' | 'match';
+type Screen = 'home' | 'favorites' | 'profile' | 'search' | 'detail' | Activity;
 
 const depth: Record<Screen, number> = {
-  home: 0, favorites: 0, profile: 0, search: 1, detail: 2, strategy: 3, match: 3,
+  home: 0, favorites: 0, profile: 0, search: 1, detail: 2, strategy: 3, match: 3, mastermind: 3,
 };
 
 export function usePageMotion(screen: Screen) {
