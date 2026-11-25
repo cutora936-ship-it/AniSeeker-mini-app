@@ -624,6 +624,26 @@ svg { display: block; width: 1.5rem; height: 1.5rem; flex: none; }
   --on-accent: #2d1119;
 }
 
+[data-theme="gold"] {
+  --accent: #e6bc78;
+  --accent-hover: #f0cf9b;
+  --accent-surface: #3b2d20;
+  --on-accent: #24180d;
+  --surface: #1d1814;
+  --panel: #26201a;
+  --rim: #5b4934;
+  --rim-strong: #80674a;
+  --muted: #c6b6a1;
+}
+
+[data-theme="gold"] :is(.favorite-button, .topbar__action) {
+  color: var(--accent);
+}
+
+.detail[data-theme="gold"] :is(.detail__about, .detail__materials) h2 {
+  color: #f4dfc0;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .detail--with-about { scroll-behavior: smooth; }
 }

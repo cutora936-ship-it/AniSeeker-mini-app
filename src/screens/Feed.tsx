@@ -13,6 +13,7 @@ export function Feed({ characters, initialIndex, onIndexChange, favoriteIds, onF
 }) {
   const feed = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const [furthestIndex, setFurthestIndex] = useState(initialIndex);
   const currentIndex = useRef(initialIndex);
   const entryIndex = useRef(initialIndex);
 
@@ -45,6 +46,7 @@ export function Feed({ characters, initialIndex, onIndexChange, favoriteIds, onF
 
     currentIndex.current = index;
     setActiveIndex(index);
+    setFurthestIndex((previous) => Math.max(previous, index));
     onIndexChange(index);
   }
 
@@ -73,6 +75,7 @@ export function Feed({ characters, initialIndex, onIndexChange, favoriteIds, onF
           <div className="feed__slide" key={character.id} inert={index !== activeIndex}
             aria-hidden={index !== activeIndex || undefined}>
             <CharacterCard character={character} saved={favoriteIds.includes(character.id)} priority={index === entryIndex.current}
+              loadPortrait={index <= furthestIndex + 1}
               onFavorite={onFavorite} onOpen={onOpen} />
           </div>
         ))}

@@ -14,12 +14,13 @@ export function CharacterPortrait({ portrait, variant, className, alt = '', prio
   priority?: boolean;
 }) {
   const thumbnail = variant === 'thumbnail';
+  const responsive = !thumbnail && portrait.large;
 
   return (
     <img className={className} alt={alt}
       src={thumbnail ? portrait.thumbnail : portrait.medium}
-      srcSet={thumbnail ? undefined : `${portrait.medium} 768w, ${portrait.large} 1254w`}
-      sizes={thumbnail ? undefined : portraitSizes[variant]}
+      srcSet={responsive ? `${portrait.medium} 768w, ${portrait.large} 1254w` : undefined}
+      sizes={!thumbnail && responsive ? portraitSizes[variant] : undefined}
       loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : undefined}
       decoding="async" />
   );

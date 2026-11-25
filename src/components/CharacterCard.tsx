@@ -36,10 +36,11 @@ export function FavoriteButton({ saved, name, onClick }: {
   );
 }
 
-export const CharacterCard = memo(function CharacterCard({ character, saved, priority, onFavorite, onOpen }: {
+export const CharacterCard = memo(function CharacterCard({ character, saved, priority, loadPortrait, onFavorite, onOpen }: {
   character: Character;
   saved: boolean;
   priority: boolean;
+  loadPortrait: boolean;
   onFavorite: (id: string) => void;
   onOpen: (character: Character) => void;
 }) {
@@ -48,11 +49,10 @@ export const CharacterCard = memo(function CharacterCard({ character, saved, pri
   return (
     <article className={portrait ? 'character-card character-card--with-portrait' : 'character-card'}
       data-theme={character.theme} aria-labelledby={`name-${character.id}`}>
-      {portrait ? (
+      {portrait && loadPortrait && (
         <CharacterPortrait className="character-card__portrait" portrait={portrait} variant="feed" priority={priority} />
-      ) : (
-        <CharacterPlaceholder />
       )}
+      {!portrait && <CharacterPlaceholder />}
       <div className="character-card__content">
         <div className="character-card__info">
           <div>

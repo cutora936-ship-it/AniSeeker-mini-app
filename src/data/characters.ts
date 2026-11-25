@@ -1,6 +1,8 @@
 import ayanokojiThumb from '../assets/kiyotaka-ayanokoji-144.webp';
 import ayanokojiMedium from '../assets/kiyotaka-ayanokoji-768.webp';
 import ayanokojiLarge from '../assets/kiyotaka-ayanokoji-1254.webp';
+import johanThumb from '../assets/johan-liebert-144.webp';
+import johanPortrait from '../assets/johan-liebert-768.webp';
 import lightYagamiThumb from '../assets/light-yagami-144.webp';
 import lightYagamiMedium from '../assets/light-yagami-768.webp';
 import lightYagamiLarge from '../assets/light-yagami-1254.webp';
@@ -8,7 +10,7 @@ import lightYagamiLarge from '../assets/light-yagami-1254.webp';
 export interface Portrait {
   thumbnail: string;
   medium: string;
-  large: string;
+  large?: string;
 }
 
 export type Activity = 'strategy' | 'match' | 'mastermind';
@@ -21,7 +23,7 @@ export interface Character {
   description: string;
   about?: readonly string[];
   portrait?: Portrait;
-  theme?: 'crimson';
+  theme?: 'crimson' | 'gold';
   strategy?: boolean;
   observation?: boolean;
   mastermind?: boolean;
@@ -59,15 +61,28 @@ export const characters: readonly Character[] = [
     ],
   },
   {
-    id: 'mika',
+    id: 'johan-liebert',
     dossier: '003',
+    name: 'Йохан Либерт',
+    work: 'MONSTER',
+    description: 'Психология и понимание человеческого поведения.',
+    portrait: { thumbnail: johanThumb, medium: johanPortrait },
+    theme: 'gold',
+    about: [
+      'Йохан Либерт — один из центральных персонажей аниме и манги Monster. Он отличается спокойствием, красноречием и глубоким пониманием человеческой психологии.',
+      'В этом разделе ты познакомишься с особенностями человеческого поведения, невербальной коммуникацией, психологическими механизмами и способами распознавания манипуляций.',
+    ],
+  },
+  {
+    id: 'mika',
+    dossier: '004',
     name: 'Мика',
     work: 'Тестовая карточка',
     description: 'Любопытство и открытость к новому.',
   },
   {
     id: 'sora',
-    dossier: '004',
+    dossier: '005',
     name: 'Сора',
     work: 'Тестовая карточка',
     description: 'Спокойствие и внимание к окружающим.',
