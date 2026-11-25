@@ -3,6 +3,7 @@ import { Icon } from './components/Icon';
 import { Navigation, type Tab } from './components/Navigation';
 import { characters, searchCharacters, type Character } from './data/characters';
 import { useFavorites } from './hooks/useFavorites';
+import { usePageMotion } from './motion/usePageMotion';
 import { useTelegram } from './platform/telegram';
 import type { ProfileEditorState } from './profile/ProfileEditor';
 import { CharacterDetail } from './screens/CharacterDetail';
@@ -26,6 +27,8 @@ export function App() {
   const searchInput = useRef<HTMLInputElement>(null);
   const actionButton = useRef<HTMLButtonElement>(null);
   const restoreActionFocus = useRef(false);
+  const { main, navigate } = usePageMotion();
+  const searchShown = searchOpen && !detail;
 
   const goBack = useCallback(() => {
     if (profileEditor !== 'closed') {
@@ -33,19 +36,22 @@ export function App() {
       return;
     }
     if (activity) {
-      setActivity(null);
-      setMatchPlaying(false);
+      navigate('pop', () => {
+        setActivity(null);
+        setMatchPlaying(false);
+      });
       return;
     }
-    if (detail) {
-      setDetail(null);
-    } else {
-      setSearchOpen(false);
-      setQuery('');
-    }
-
-    restoreActionFocus.current = true;
-  }, [detail, activity, profileEditor]);
+    navigate(detail ? 'pop' : 'search-out', () => {
+      restoreActionFocus.current = true;
+      if (detail) {
+        setDetail(null);
+      } else {
+        setSearchOpen(false);
+        setQuery('');
+      }
+    });
+  }, [detail, activity, profileEditor, navigate]);
 
   const overlayOpen = Boolean(detail || searchOpen || profileEditor !== 'closed');
   const user = useTelegram(overlayOpen ? goBack : undefined);
@@ -73,35 +79,45 @@ export function App() {
   }, [goBack, overlayOpen]);
 
   function changeTab(next: Tab) {
-    setTab(next);
-    setDetail(null);
-    setActivity(null);
-    setMatchPlaying(false);
-    setProfileEditor('closed');
-    setSearchOpen(false);
-    setQuery('');
+    navigate('tab', () => {
+      setTab(next);
+      setDetail(null);
+      setActivity(null);
+      setMatchPlaying(false);
+      setProfileEditor('closed');
+      setSearchOpen(false);
+      setQuery('');
+    });
+  }
+
+  function openSearch() {
+    navigate('search-in', () => setSearchOpen(true));
+    searchInput.current?.focus({ preventScroll: true });
   }
 
   const favoriteCharacters = favoriteIds
     .map((id) => characters.find((character) => character.id === id))
     .filter((character): character is Character => Boolean(character));
   const results = searchOpen ? searchCharacters(characters, query) : [];
-  const listProps = { favoriteIds, onFavorite: toggleFavorite, onOpen: setDetail };
+  const listProps = {
+    favoriteIds,
+    onFavorite: toggleFavorite,
+    onOpen: (character: Character) => navigate('push', () => setDetail(character)),
+  };
   const availableActivity = detail?.observation ? 'match' : detail?.strategy ? 'strategy' : null;
 
   return (
-    <div className={matchPlaying ? 'app app--match-playing' : 'app'}>
+    <div className={matchPlaying ? 'app app--match-playing' : 'app'} data-search={searchShown}>
       <header className="topbar" data-theme={activity === 'match' ? 'crimson' : undefined}>
-        {searchOpen && !detail ? (
-          <div className="search-field glass" role="search">
+        <div className="topbar__leading">
+          <div className="wordmark" aria-label="AniSeeker" aria-hidden={searchShown}>Ani<span>Seeker</span></div>
+          <div className="search-field glass" role="search" inert={!searchShown} aria-hidden={!searchShown}>
             <Icon name="search" />
             <input ref={searchInput} type="search" inputMode="search" enterKeyHint="search"
               placeholder="Имя персонажа" aria-label="Поиск по имени персонажа"
               value={query} onChange={(event) => setQuery(event.target.value)} />
           </div>
-        ) : (
-          <div className="wordmark" aria-label="AniSeeker">Ani<span>Seeker</span></div>
-        )}
+        </div>
         {detail || searchOpen ? (
           <button key="back" type="button" className="icon-button glass topbar__action"
             aria-label={detail ? 'Вернуться' : 'Закрыть поиск'} onClick={goBack}>
@@ -109,16 +125,18 @@ export function App() {
           </button>
         ) : (
           <button key="search" ref={actionButton} type="button" className="icon-button glass topbar__action"
-            aria-label="Открыть поиск" onClick={() => setSearchOpen(true)}>
+            aria-label="Открыть поиск" onClick={openSearch}>
             <Icon name="search" />
           </button>
         )}
       </header>
-      <main className="main">
+      <main className="main" ref={main}>
         {detail ? (
           <>
             <CharacterDetail character={detail} hidden={activity !== null}
-              onOpenActivity={availableActivity ? () => setActivity(availableActivity) : undefined} />
+              onOpenActivity={availableActivity
+                ? () => navigate('push', () => setActivity(availableActivity))
+                : undefined} />
             {activity && (
               <Suspense fallback={<p className="subscreen" role="status">Загрузка тренажёра…</p>}>
                 {activity === 'strategy' ? <Strategy onBack={goBack} /> : (
@@ -131,7 +149,7 @@ export function App() {
           <section className="subscreen" aria-labelledby="search-title">
             <h1 id="search-title">Поиск</h1>
             {results.length ? (
-              <CharacterList characters={results} {...listProps} />
+              <CharacterList characters={results} animateRows {...listProps} />
             ) : (
               <EmptyState icon="search" title="Персонажи не найдены">
                 Попробуйте изменить запрос.

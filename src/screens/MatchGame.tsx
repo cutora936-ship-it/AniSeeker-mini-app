@@ -32,7 +32,7 @@ export default function MatchGame({ onBack, onPlayingChange }: {
 
   return (
     <section data-theme="crimson" className={phase === 'playing' ? 'subscreen match match--playing' : 'subscreen match'}
-      ref={screen} aria-labelledby="match-title">
+      data-match-phase={phase} ref={screen} aria-labelledby="match-title">
       {session.phase === 'welcome' && (
         <>
           <h1 id="match-title" ref={heading} tabIndex={-1}>Совпадение</h1>
@@ -81,7 +81,7 @@ export default function MatchGame({ onBack, onPlayingChange }: {
       {session.phase === 'results' && (
         <>
           <h1 id="match-title" ref={heading} tabIndex={-1}>Тренировка завершена</h1>
-          {session.newRecord && <p className="match-new-record"><Icon name="observation" /> Новый личный рекорд</p>}
+          {session.newRecord && <p className="match-new-record motion-notice"><Icon name="observation" /> Новый личный рекорд</p>}
           <dl className="match-results glass">
             <div><dt>Совпадения</dt><dd>{session.result.hits} / {roundsPerGame}</dd></div>
             <div><dt>Ошибки</dt><dd>{session.result.errors}</dd></div>

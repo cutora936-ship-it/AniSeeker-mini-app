@@ -295,12 +295,13 @@
 }
 
 .strategy-dialog[open] {
-  animation: arrive .24s var(--ease) both;
+  animation: dialog-arrive .235s var(--ease) both;
 }
 
 .strategy-dialog::backdrop {
   background: rgb(13 8 19 / 70%);
   backdrop-filter: blur(3px);
+  animation: backdrop-arrive .2s var(--ease) both;
 }
 
 .strategy-dialog h2 {
