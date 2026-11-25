@@ -17,14 +17,15 @@ export function EmptyState({ icon, title, children }: {
   );
 }
 
-export function CharacterList({ characters, favoriteIds, onFavorite, onOpen }: {
+export function CharacterList({ characters, favoriteIds, onFavorite, onOpen, animateRows }: {
   characters: readonly Character[];
   favoriteIds: readonly string[];
   onFavorite: (id: string) => void;
   onOpen: (character: Character) => void;
+  animateRows?: boolean;
 }) {
   return (
-    <ul className="character-list">
+    <ul className={animateRows ? 'character-list character-list--reveal' : 'character-list'}>
       {characters.map((character) => (
         <li className="character-row glass" key={character.id}>
           <button type="button" className="character-row__open" onClick={() => onOpen(character)}>

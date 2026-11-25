@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import type { Character } from '../data/characters';
 import { Icon } from './Icon';
 
@@ -28,9 +29,19 @@ export function FavoriteButton({ saved, name, onClick }: {
   name: string;
   onClick: () => void;
 }) {
+  const bookmark = useRef<Animation | null>(null);
+
   return (
     <button type="button" className="icon-button glass favorite-button" aria-pressed={saved}
-      aria-label={`Избранное: ${name}`} onClick={onClick}>
+      aria-label={`Избранное: ${name}`} onClick={(event) => {
+        onClick();
+        bookmark.current?.cancel();
+        if (saved || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        bookmark.current = event.currentTarget.querySelector('svg')?.animate?.(
+          [{ scale: '1' }, { scale: '1.14', offset: .47 }, { scale: '1' }],
+          { duration: 205, easing: 'cubic-bezier(.2,.72,.25,1)' },
+        ) ?? null;
+      }}>
       <Icon name="bookmark" />
     </button>
   );

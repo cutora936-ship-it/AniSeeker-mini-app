@@ -7,11 +7,13 @@ import { nicknameLength, validateNickname } from './storage';
 export type AvatarChange = Blob | null | undefined;
 export type ProfileEditorState = 'closed' | 'editing' | 'saving';
 
-export function ProfileEditor({ name, image, hasAvatar, saving, onCancel, onSave }: {
+export function ProfileEditor({ name, image, hasAvatar, saving, open, onExited, onCancel, onSave }: {
   name: string;
   image: Blob | null;
   hasAvatar: boolean;
   saving: boolean;
+  open: boolean;
+  onExited: () => void;
   onCancel: () => void;
   onSave: (nickname: string, avatar: AvatarChange) => Promise<void>;
 }) {
@@ -43,7 +45,7 @@ export function ProfileEditor({ name, image, hasAvatar, saving, onCancel, onSave
     const viewport = window.visualViewport;
     let frame = 0;
     function fitViewport() {
-      if (!element) return;
+      if (!element || element.dataset.closing === 'true') return;
       element.style.setProperty('--profile-viewport-height', `${viewport?.height ?? window.innerHeight}px`);
       element.style.setProperty('--profile-viewport-top', `${viewport?.offsetTop ?? 0}px`);
       window.cancelAnimationFrame(frame);
@@ -71,6 +73,27 @@ export function ProfileEditor({ name, image, hasAvatar, saving, onCancel, onSave
       element.close();
     };
   }, []);
+
+  useEffect(() => {
+    if (open) return;
+    const element = dialog.current;
+    if (!element) return;
+    const finish = () => {
+      element.close();
+      onExited();
+    };
+    if (!element.animate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      finish();
+      return;
+    }
+    const { opacity, transform } = getComputedStyle(element);
+    const leave = element.animate(
+      [{ opacity, transform }, { opacity: 0, transform: 'translateY(4px) scale(.985)' }],
+      { duration: 185, easing: 'cubic-bezier(.35,0,.65,1)', fill: 'forwards' },
+    );
+    void leave.finished.then(finish, () => {});
+    return () => leave.cancel();
+  }, [open, onExited]);
 
   async function choosePhoto(event: ChangeEvent<HTMLInputElement>) {
     const file = event.currentTarget.files?.[0];
@@ -113,9 +136,9 @@ export function ProfileEditor({ name, image, hasAvatar, saving, onCancel, onSave
   }
 
   return (
-    <dialog ref={dialog} className="profile-editor glass" aria-labelledby="profile-editor-title"
+    <dialog ref={dialog} className="profile-editor glass" aria-labelledby="profile-editor-title" data-closing={!open}
       onCancel={(event) => { event.preventDefault(); if (!pending.current) onCancel(); }}>
-      <form className="profile-editor__form" onSubmit={submit} noValidate>
+      <form className="profile-editor__form" inert={!open} onSubmit={submit} noValidate>
         <div className="profile-editor__header">
           <h2 id="profile-editor-title" ref={title} tabIndex={-1}>Редактировать профиль</h2>
           <button type="button" className="profile-editor__close icon-button glass" aria-label="Закрыть редактор"
@@ -127,7 +150,7 @@ export function ProfileEditor({ name, image, hasAvatar, saving, onCancel, onSave
             <input id="profile-nickname" ref={input} value={nickname} autoComplete="nickname" enterKeyHint="done"
               aria-describedby="profile-nickname-hint" aria-invalid={Boolean(nicknameError)} disabled={saving} required
               onChange={(event) => { setNickname(event.target.value); setSaveError(''); }} />
-            <p id="profile-nickname-hint" className={nicknameError ? 'profile-form-error' : 'profile-nickname-hint'}>
+            <p id="profile-nickname-hint" className={nicknameError ? 'profile-form-error motion-notice' : 'profile-nickname-hint'}>
               {nicknameError || 'От 2 до 24 символов'}
             </p>
           </div>
@@ -148,11 +171,11 @@ export function ProfileEditor({ name, image, hasAvatar, saving, onCancel, onSave
               )}
             </div>
           </div>
-          {processing && <p className="profile-nickname-hint" role="status">Подготовка фото…</p>}
-          {photoError && <p className="profile-form-error" role="alert">{photoError}</p>}
+          {processing && <p className="profile-nickname-hint motion-notice" role="status">Подготовка фото…</p>}
+          {photoError && <p className="profile-form-error motion-notice" role="alert">{photoError}</p>}
         </div>
         <div className="profile-editor__actions">
-          {saveError && <p className="profile-form-error" role="alert">{saveError}</p>}
+          {saveError && <p className="profile-form-error motion-notice" role="alert">{saveError}</p>}
           <button type="button" className="profile-action glass" disabled={saving} onClick={onCancel}>Отмена</button>
           <button type="submit" className="profile-action profile-action--primary" disabled={saving || processing}>
             {saving ? 'Сохранение…' : 'Сохранить'}

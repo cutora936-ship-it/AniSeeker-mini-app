@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type MouseEvent } from 'react';
 import { Icon } from '../components/Icon';
 import type { TelegramUser } from '../platform/telegram';
 import { ProfileAvatar } from '../profile/ProfileAvatar';
@@ -13,6 +13,7 @@ export function Profile({ user, editor, onEditorChange }: {
 }) {
   const [preferences, setPreferences] = useState(readProfile);
   const [loaded, setLoaded] = useState<{ id: string; image: Blob | null } | null>(null);
+  const [showEditor, setShowEditor] = useState(false);
   const editorTrigger = useRef<HTMLButtonElement>(null);
   const avatarId = preferences.avatarId;
   const image = loaded?.id === avatarId ? loaded.image : null;
@@ -28,12 +29,14 @@ export function Profile({ user, editor, onEditorChange }: {
     return () => { active = false; };
   }, [avatarId, loaded?.id]);
 
-  useEffect(() => {
-    if (editor === 'closed') editorTrigger.current?.focus({ preventScroll: true });
-  }, [editor]);
+  const finishEditorExit = useCallback(() => {
+    setShowEditor(false);
+    editorTrigger.current?.focus({ preventScroll: true });
+  }, []);
 
   function openEditor(event: MouseEvent<HTMLButtonElement>) {
     editorTrigger.current = event.currentTarget;
+    setShowEditor(true);
     onEditorChange('editing');
   }
 
@@ -67,9 +70,9 @@ export function Profile({ user, editor, onEditorChange }: {
         <button type="button" className="profile__edit profile-action glass"
           onClick={openEditor}><Icon name="edit" />Редактировать профиль</button>
       </div>
-      {editor !== 'closed' && (
+      {showEditor && (
         <ProfileEditor name={name} image={image} hasAvatar={Boolean(avatarId)} saving={editor === 'saving'}
-          onCancel={() => onEditorChange('closed')} onSave={save} />
+          open={editor !== 'closed'} onExited={finishEditorExit} onCancel={() => onEditorChange('closed')} onSave={save} />
       )}
     </section>
   );
