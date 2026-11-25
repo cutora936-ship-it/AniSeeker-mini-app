@@ -196,6 +196,10 @@ svg { display: block; width: 1.5rem; height: 1.5rem; flex: none; }
     radial-gradient(ellipse at 96% 95%, #50326b 0%, transparent 34%);
 }
 
+.character-card--with-portrait::before {
+  background: linear-gradient(to bottom, transparent 38%, rgb(16 13 23 / 74%) 64%, #100d17 100%);
+}
+
 .character-card::after {
   z-index: 1;
   border-radius: inherit;
@@ -221,10 +225,23 @@ svg { display: block; width: 1.5rem; height: 1.5rem; flex: none; }
     linear-gradient(155deg, #251c31 0%, #171021 39%, #100c17 100%);
 }
 
-.character-card > .placeholder {
+.character-card > .placeholder,
+.character-card__portrait {
   position: absolute;
   inset: 0;
   z-index: -2;
+}
+
+.character-card__portrait {
+  width: 100%;
+  height: 100%;
+}
+
+.character-card__portrait,
+.detail__portrait {
+  display: block;
+  object-fit: cover;
+  object-position: 54% 12%;
 }
 
 .placeholder__field {

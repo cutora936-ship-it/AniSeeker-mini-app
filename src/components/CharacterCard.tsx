@@ -42,9 +42,16 @@ export function CharacterCard({ character, saved, onFavorite, onOpen }: {
   onFavorite: () => void;
   onOpen: () => void;
 }) {
+  const { portrait } = character;
+
   return (
-    <article className="character-card" aria-labelledby={`name-${character.id}`}>
-      <CharacterPlaceholder />
+    <article className={portrait ? 'character-card character-card--with-portrait' : 'character-card'}
+      aria-labelledby={`name-${character.id}`}>
+      {portrait ? (
+        <img className="character-card__portrait" src={portrait} alt="" fetchPriority="high" />
+      ) : (
+        <CharacterPlaceholder />
+      )}
       <div className="character-card__content">
         <div className="character-card__info">
           <div>
