@@ -3,24 +3,35 @@ import { CharacterPlaceholder, DossierLabel } from '../components/CharacterCard'
 import { Icon } from '../components/Icon';
 import type { Character } from '../data/characters';
 
-export function CharacterDetail({ character, hidden, onOpenStrategy }: {
+export function CharacterDetail({ character, hidden, onOpenActivity }: {
   character: Character;
   hidden: boolean;
-  onOpenStrategy?: () => void;
+  onOpenActivity?: () => void;
 }) {
   const title = useRef<HTMLHeadingElement>(null);
-  const strategyButton = useRef<HTMLButtonElement>(null);
-  const strategyWasOpen = useRef(false);
+  const activityButton = useRef<HTMLButtonElement>(null);
+  const activityWasOpen = useRef(false);
   const about = character.about ?? [];
   const hasAbout = about.length > 0;
+  const activity = character.observation
+    ? {
+        icon: 'observation' as const,
+        title: 'Совпадение',
+        description: 'Развивай наблюдательность, концентрацию и скорость зрительного поиска, находя одинаковые символы.',
+      }
+    : {
+        icon: 'strategy' as const,
+        title: 'Стратегия',
+        description: 'Развивай тактическое мышление, анализируй позиции и находи лучшие шахматные ходы.',
+      };
 
   useEffect(() => {
     title.current?.focus({ preventScroll: true });
   }, [character.id]);
 
   useEffect(() => {
-    if (!hidden && strategyWasOpen.current) strategyButton.current?.focus({ preventScroll: true });
-    strategyWasOpen.current = hidden;
+    if (!hidden && activityWasOpen.current) activityButton.current?.focus({ preventScroll: true });
+    activityWasOpen.current = hidden;
   }, [hidden]);
 
   return (
@@ -41,15 +52,13 @@ export function CharacterDetail({ character, hidden, onOpenStrategy }: {
           {about.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
         </section>
       )}
-      {onOpenStrategy && (
-        <button type="button" className="detail__strategy glass" ref={strategyButton}
-          onClick={onOpenStrategy} aria-labelledby="strategy-card-title" aria-describedby="strategy-card-description">
-          <span className="detail__strategy-icon" aria-hidden="true"><Icon name="strategy" /></span>
+      {onOpenActivity && (
+        <button type="button" className="detail__strategy glass" ref={activityButton}
+          onClick={onOpenActivity} aria-labelledby="activity-card-title" aria-describedby="activity-card-description">
+          <span className="detail__strategy-icon" aria-hidden="true"><Icon name={activity.icon} /></span>
           <span className="detail__strategy-copy">
-            <strong id="strategy-card-title">Стратегия</strong>
-            <span id="strategy-card-description">
-              Развивай тактическое мышление, анализируй позиции и находи лучшие шахматные ходы.
-            </span>
+            <strong id="activity-card-title">{activity.title}</strong>
+            <span id="activity-card-description">{activity.description}</span>
           </span>
           <Icon name="right" />
         </button>

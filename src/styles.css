@@ -66,6 +66,9 @@ svg { display: block; width: 1.5rem; height: 1.5rem; flex: none; }
   padding-inline: calc(var(--gutter) + .26rem);
 }
 
+.app--match-playing { grid-template-rows: auto minmax(0, 1fr); }
+.topbar[data-theme="crimson"] .wordmark span { color: var(--accent); }
+
 .wordmark {
   font-size: clamp(1.75rem, 7.3vw, 2.25rem);
   font-weight: 800;
@@ -743,6 +746,8 @@ svg { display: block; width: 1.5rem; height: 1.5rem; flex: none; }
   background: radial-gradient(ellipse at 25% 0, #3a1822, transparent 65%), #1d0c13;
   scrollbar-color: #8a4c5a transparent;
 }
+
+.detail[data-theme="crimson"] .detail__strategy-icon { background: #512330; color: #ffd0d8; }
 
 @media (prefers-reduced-motion: no-preference) {
   .detail--with-about { scroll-behavior: smooth; }

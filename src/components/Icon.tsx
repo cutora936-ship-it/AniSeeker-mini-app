@@ -11,6 +11,7 @@ const paths = {
   close: <path d="m6 6 12 12M18 6 6 18" />,
   image: <><rect x="3.5" y="4.5" width="17" height="15" rx="2.4" /><circle cx="9" cy="9.5" r="1.3" /><path d="m4 16 4-3 3.3 2.1 4.2-4.2 4.8 4.8" /></>,
   strategy: <path d="M6 3v5h3V5h6v3h3V3h3v7l-4 3v5l2 2v1H5v-1l2-2v-5l-4-3V3zM7 18h10" />,
+  observation: <><path d="M3 8V4a1 1 0 0 1 1-1h4m8 0h4a1 1 0 0 1 1 1v4m0 8v4a1 1 0 0 1-1 1h-4m-8 0H4a1 1 0 0 1-1-1v-4M5 12s2.4-4 7-4 7 4 7 4-2.4 4-7 4-7-4-7-4Z" /><circle cx="12" cy="12" r="1.65" /></>,
   hint: <><path d="M9 18v-2.3a5.5 5.5 0 1 1 6 0V18m-6 0h6m-5 3h4" /><path d="M12 2V1.5M3.5 5.5l1 1m15-1-1 1" /></>,
   restart: <><path d="M4 10a8 8 0 1 1 1.7 7.5M4 5v5h5" /></>,
 } satisfies Record<string, ReactNode>;
