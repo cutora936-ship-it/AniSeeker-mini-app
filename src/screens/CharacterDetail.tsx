@@ -1,30 +1,34 @@
 import { useEffect, useRef } from 'react';
 import { CharacterPlaceholder, DossierLabel } from '../components/CharacterCard';
 import { CharacterPortrait } from '../components/CharacterPortrait';
-import { Icon } from '../components/Icon';
-import type { Character } from '../data/characters';
+import { Icon, type IconName } from '../components/Icon';
+import type { Activity, Character } from '../data/characters';
+
+const activityCards: readonly {
+  id: Activity;
+  flag: 'strategy' | 'observation' | 'mastermind';
+  icon: IconName;
+  title: string;
+  description: string;
+}[] = [
+  { id: 'strategy', flag: 'strategy', icon: 'strategy', title: 'Стратегия',
+    description: 'Развивай тактическое мышление, анализируй позиции и находи лучшие шахматные ходы.' },
+  { id: 'mastermind', flag: 'mastermind', icon: 'mastermind', title: 'Аналитическое мышление',
+    description: 'Расшифровывай секретные комбинации, анализируй подсказки и исключай невозможные варианты.' },
+  { id: 'match', flag: 'observation', icon: 'observation', title: 'Совпадение',
+    description: 'Развивай наблюдательность, концентрацию и скорость зрительного поиска, находя одинаковые символы.' },
+];
 
 export function CharacterDetail({ character, hidden, onOpenActivity }: {
   character: Character;
   hidden: boolean;
-  onOpenActivity?: () => void;
+  onOpenActivity: (activity: Activity) => void;
 }) {
   const title = useRef<HTMLHeadingElement>(null);
   const activityButton = useRef<HTMLButtonElement>(null);
   const activityWasOpen = useRef(false);
   const about = character.about ?? [];
   const hasAbout = about.length > 0;
-  const activity = character.observation
-    ? {
-        icon: 'observation' as const,
-        title: 'Совпадение',
-        description: 'Развивай наблюдательность, концентрацию и скорость зрительного поиска, находя одинаковые символы.',
-      }
-    : {
-        icon: 'strategy' as const,
-        title: 'Стратегия',
-        description: 'Развивай тактическое мышление, анализируй позиции и находи лучшие шахматные ходы.',
-      };
 
   useEffect(() => {
     title.current?.focus({ preventScroll: true });
@@ -54,17 +58,21 @@ export function CharacterDetail({ character, hidden, onOpenActivity }: {
           {about.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
         </section>
       )}
-      {onOpenActivity && (
-        <button type="button" className="detail__strategy surface" ref={activityButton}
-          onClick={onOpenActivity} aria-labelledby="activity-card-title" aria-describedby="activity-card-description">
+      {activityCards.filter(({ flag }) => character[flag]).map((activity) => (
+        <button key={activity.id} type="button" className="detail__strategy surface"
+          onClick={(event) => {
+            activityButton.current = event.currentTarget;
+            onOpenActivity(activity.id);
+          }}
+          aria-labelledby={`activity-${activity.id}-title`} aria-describedby={`activity-${activity.id}-description`}>
           <span className="detail__strategy-icon" aria-hidden="true"><Icon name={activity.icon} /></span>
           <span className="detail__strategy-copy">
-            <strong id="activity-card-title">{activity.title}</strong>
-            <span id="activity-card-description">{activity.description}</span>
+            <strong id={`activity-${activity.id}-title`}>{activity.title}</strong>
+            <span id={`activity-${activity.id}-description`}>{activity.description}</span>
           </span>
           <Icon name="right" />
         </button>
-      )}
+      ))}
       <section className="detail__materials surface" aria-labelledby="materials-heading">
         <h2 id="materials-heading">Материалы</h2>
         <p>Здесь появятся материалы о персонаже.</p>

@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRe
 import { flushSync } from 'react-dom';
 import { Icon } from './components/Icon';
 import { Navigation, type Tab } from './components/Navigation';
-import { characters, searchCharacters, type Character } from './data/characters';
+import { characters, searchCharacters, type Activity, type Character } from './data/characters';
 import { useFavorites } from './hooks/useFavorites';
 import { usePageMotion } from './motion/usePageMotion';
 import { useTelegram } from './platform/telegram';
@@ -14,13 +14,14 @@ import { Profile } from './screens/Profile';
 
 const Strategy = lazy(() => import('./screens/Strategy'));
 const MatchGame = lazy(() => import('./screens/MatchGame'));
+const Mastermind = lazy(() => import('./screens/Mastermind'));
 
 export function App() {
   const [tab, setTab] = useState<Tab>('home');
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [detail, setDetail] = useState<Character | null>(null);
-  const [activity, setActivity] = useState<'strategy' | 'match' | null>(null);
+  const [activity, setActivity] = useState<Activity | null>(null);
   const [matchPlaying, setMatchPlaying] = useState(false);
   const [profileEditor, setProfileEditor] = useState<ProfileEditorState>('closed');
   const { favoriteIds, toggleFavorite } = useFavorites();
@@ -103,8 +104,6 @@ export function App() {
     onFavorite: toggleFavorite,
     onOpen: setDetail,
   };
-  const availableActivity = detail?.observation ? 'match' : detail?.strategy ? 'strategy' : null;
-
   return (
     <div className={matchPlaying ? 'app app--match-playing' : 'app'} data-search={searchShown}>
       <header className="topbar" data-theme={detail?.theme}>
@@ -133,12 +132,14 @@ export function App() {
         {detail ? (
           <>
             <CharacterDetail character={detail} hidden={activity !== null}
-              onOpenActivity={availableActivity ? () => setActivity(availableActivity) : undefined} />
+              onOpenActivity={setActivity} />
             {activity && (
               <Suspense fallback={<p className="subscreen screen-loading" role="status">Загрузка тренажёра…</p>}>
-                {activity === 'strategy' ? <Strategy onBack={goBack} /> : (
+                {activity === 'strategy' && <Strategy onBack={goBack} />}
+                {activity === 'match' && (
                   <MatchGame onBack={goBack} onPlayingChange={setMatchPlaying} />
                 )}
+                {activity === 'mastermind' && <Mastermind onBack={goBack} />}
               </Suspense>
             )}
           </>
