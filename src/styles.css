@@ -606,8 +606,29 @@ svg { display: block; width: 1.5rem; height: 1.5rem; flex: none; }
 }
 
 .detail__image .placeholder__frame { top: 16%; height: 65%; }
-.detail__materials { margin-top: .75rem; padding: .95rem; border-radius: 1.1rem; }
+.detail__about, .detail__materials { margin-top: .75rem; padding: .95rem; border-radius: 1.1rem; }
+
+.detail__about h2 {
+  margin-bottom: .55rem;
+  color: white;
+  font-size: 1.13rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.detail__about p {
+  max-width: 65ch;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.detail__about p + p { margin-top: .75rem; }
 .detail__materials p { margin-top: .25rem; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .detail--with-about { scroll-behavior: smooth; }
+}
 
 @media (max-height: 620px) {
   .character-card__content { padding-bottom: .8rem; }
