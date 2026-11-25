@@ -11,7 +11,7 @@ const tabs: readonly { id: Tab; label: string; icon: IconName }[] = [
 
 export const Navigation = memo(function Navigation({ current, onChange }: { current: Tab; onChange: (tab: Tab) => void }) {
   return (
-    <nav className="navigation glass" aria-label="Основная навигация" data-active={current}>
+    <nav className="navigation surface" aria-label="Основная навигация" data-active={current}>
       <span className="navigation__track" aria-hidden="true"><span className="navigation__indicator" /></span>
       {tabs.map(({ id, label, icon }) => (
         <button key={id} type="button" className="navigation__item"

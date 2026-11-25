@@ -13,6 +13,7 @@ export function Feed({ characters, initialIndex, onIndexChange, favoriteIds, onF
 }) {
   const feed = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(initialIndex);
+  const currentIndex = useRef(initialIndex);
   const entryIndex = useRef(initialIndex);
 
   useLayoutEffect(() => {
@@ -35,12 +36,14 @@ export function Feed({ characters, initialIndex, onIndexChange, favoriteIds, onF
     const viewport = feed.current;
     if (!viewport || viewport.clientHeight === 0) return;
     const index = Math.min(characters.length - 1, Math.round(viewport.scrollTop / viewport.clientHeight));
-    if (index < 0 || index === activeIndex) return;
+    const previousIndex = currentIndex.current;
+    if (index < 0 || index === previousIndex) return;
 
-    if (viewport.children.item(activeIndex)?.contains(document.activeElement)) {
+    if (viewport.children.item(previousIndex)?.contains(document.activeElement)) {
       viewport.focus({ preventScroll: true });
     }
 
+    currentIndex.current = index;
     setActiveIndex(index);
     onIndexChange(index);
   }
@@ -69,7 +72,7 @@ export function Feed({ characters, initialIndex, onIndexChange, favoriteIds, onF
         {characters.map((character, index) => (
           <div className="feed__slide" key={character.id} inert={index !== activeIndex}
             aria-hidden={index !== activeIndex || undefined}>
-            <CharacterCard character={character} saved={favoriteIds.includes(character.id)}
+            <CharacterCard character={character} saved={favoriteIds.includes(character.id)} priority={index === entryIndex.current}
               onFavorite={onFavorite} onOpen={onOpen} />
           </div>
         ))}

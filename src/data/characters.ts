@@ -1,5 +1,15 @@
-import ayanokojiPortrait from '../assets/kiyotaka-ayanokoji.png';
-import lightYagamiPortrait from '../assets/light-yagami.webp';
+import ayanokojiThumb from '../assets/kiyotaka-ayanokoji-144.webp';
+import ayanokojiMedium from '../assets/kiyotaka-ayanokoji-768.webp';
+import ayanokojiLarge from '../assets/kiyotaka-ayanokoji-1254.webp';
+import lightYagamiThumb from '../assets/light-yagami-144.webp';
+import lightYagamiMedium from '../assets/light-yagami-768.webp';
+import lightYagamiLarge from '../assets/light-yagami-1254.webp';
+
+export interface Portrait {
+  thumbnail: string;
+  medium: string;
+  large: string;
+}
 
 export interface Character {
   id: string;
@@ -8,7 +18,7 @@ export interface Character {
   work: string;
   description: string;
   about?: readonly string[];
-  portrait?: string;
+  portrait?: Portrait;
   theme?: 'crimson';
   strategy?: boolean;
   observation?: boolean;
@@ -21,7 +31,7 @@ export const characters: readonly Character[] = [
     name: 'Лайт Ягами',
     work: 'Death Note',
     description: 'Стратегическое и аналитическое мышление.',
-    portrait: lightYagamiPortrait,
+    portrait: { thumbnail: lightYagamiThumb, medium: lightYagamiMedium, large: lightYagamiLarge },
     strategy: true,
     about: [
       'Лайт Ягами — главный герой аниме «Тетрадь смерти». Одарённый школьник, обладающий выдающимся интеллектом, аналитическими способностями и стратегическим мышлением.',
@@ -35,7 +45,7 @@ export const characters: readonly Character[] = [
     name: 'Киётака Аянокоджи',
     work: 'Класс превосходства',
     description: 'Наблюдательность и анализ поведения людей.',
-    portrait: ayanokojiPortrait,
+    portrait: { thumbnail: ayanokojiThumb, medium: ayanokojiMedium, large: ayanokojiLarge },
     theme: 'crimson',
     observation: true,
     about: [

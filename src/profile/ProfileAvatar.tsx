@@ -5,7 +5,7 @@ export function ProfileAvatar({ image }: { image: Blob | null }) {
   const url = useAvatarUrl(image);
 
   return (
-    <span className="profile-avatar glass" aria-hidden="true">
+    <span className="profile-avatar surface" aria-hidden="true">
       {url ? <img src={url} alt="" /> : <Icon name="user" />}
     </span>
   );

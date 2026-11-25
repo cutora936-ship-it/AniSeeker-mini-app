@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useEffectEvent, useState } from 'react';
 
 export interface TelegramUser {
   first_name: string;
@@ -44,6 +44,8 @@ function getTelegram() {
 
 export function useTelegram(onBack?: () => void) {
   const [app, setApp] = useState(getTelegram);
+  const hasBack = Boolean(onBack);
+  const handleBack = useEffectEvent(() => onBack?.());
 
   useEffect(() => {
     if (app) return;
@@ -84,8 +86,8 @@ export function useTelegram(onBack?: () => void) {
     app.expand();
 
     if (app.isVersionAtLeast('6.1')) {
-      app.setBackgroundColor('#100d17');
-      app.setHeaderColor(app.isVersionAtLeast('6.9') ? '#100d17' : 'bg_color');
+      app.setBackgroundColor('#101010');
+      app.setHeaderColor(app.isVersionAtLeast('6.9') ? '#101010' : 'bg_color');
     }
 
     if (app.isVersionAtLeast('7.7')) app.disableVerticalSwipes?.();
@@ -102,15 +104,16 @@ export function useTelegram(onBack?: () => void) {
   }, [app]);
 
   useEffect(() => {
-    if (!app?.isVersionAtLeast('6.1') || !onBack) return;
+    if (!app?.isVersionAtLeast('6.1') || !hasBack) return;
 
-    app.BackButton.onClick(onBack);
+    const onClick = () => handleBack();
+    app.BackButton.onClick(onClick);
     app.BackButton.show();
     return () => {
-      app.BackButton.offClick(onBack);
+      app.BackButton.offClick(onClick);
       app.BackButton.hide();
     };
-  }, [app, onBack]);
+  }, [app, hasBack]);
 
   return app?.initDataUnsafe.user;
 }

@@ -1,14 +1,13 @@
 import { memo } from 'react';
 import type { Character } from '../data/characters';
+import { CharacterPortrait } from './CharacterPortrait';
 import { Icon } from './Icon';
 
 export function CharacterPlaceholder({ compact = false }: { compact?: boolean }) {
   return (
     <div className={compact ? 'placeholder placeholder--compact' : 'placeholder'} aria-hidden="true">
-      <div className="placeholder__field">
-        <div className="placeholder__frame">
-          <Icon name="image" />
-        </div>
+      <div className="placeholder__frame">
+        <Icon name="image" />
       </div>
     </div>
   );
@@ -30,16 +29,17 @@ export function FavoriteButton({ saved, name, onClick }: {
   onClick: () => void;
 }) {
   return (
-    <button type="button" className="icon-button glass favorite-button" aria-pressed={saved}
+    <button type="button" className="icon-button surface favorite-button" aria-pressed={saved}
       aria-label={`Избранное: ${name}`} onClick={onClick}>
       <Icon name="bookmark" />
     </button>
   );
 }
 
-export const CharacterCard = memo(function CharacterCard({ character, saved, onFavorite, onOpen }: {
+export const CharacterCard = memo(function CharacterCard({ character, saved, priority, onFavorite, onOpen }: {
   character: Character;
   saved: boolean;
+  priority: boolean;
   onFavorite: (id: string) => void;
   onOpen: (character: Character) => void;
 }) {
@@ -49,7 +49,7 @@ export const CharacterCard = memo(function CharacterCard({ character, saved, onF
     <article className={portrait ? 'character-card character-card--with-portrait' : 'character-card'}
       data-theme={character.theme} aria-labelledby={`name-${character.id}`}>
       {portrait ? (
-        <img className="character-card__portrait" src={portrait} alt="" fetchPriority="high" />
+        <CharacterPortrait className="character-card__portrait" portrait={portrait} variant="feed" priority={priority} />
       ) : (
         <CharacterPlaceholder />
       )}
@@ -62,7 +62,7 @@ export const CharacterCard = memo(function CharacterCard({ character, saved, onF
           </div>
           <FavoriteButton name={character.name} saved={saved} onClick={() => onFavorite(character.id)} />
         </div>
-        <button type="button" className="study-button glass" onClick={() => onOpen(character)}>
+        <button type="button" className="study-button surface" onClick={() => onOpen(character)}>
           Изучить персонажа
           <Icon name="right" />
         </button>

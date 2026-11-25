@@ -54,17 +54,17 @@ export function Profile({ user, editor, onEditorChange }: {
   return (
     <section className="subscreen" aria-labelledby="profile-title">
       <h1 id="profile-title">Профиль</h1>
-      <div className="profile profile--editable glass">
+      <div className="profile profile--editable surface">
         <div className="profile__avatar">
           <ProfileAvatar image={image} />
-          <button type="button" className="profile__camera icon-button glass" aria-label="Редактировать аватарку"
+          <button type="button" className="profile__camera icon-button surface" aria-label="Редактировать аватарку"
             onClick={openEditor}><Icon name="camera" /></button>
         </div>
         <div className="profile__identity">
           <h2>{name}</h2>
           <p>{user ? (user.username ? `@${user.username}` : 'Telegram') : 'Браузерный режим'}</p>
         </div>
-        <button type="button" className="profile__edit profile-action glass"
+        <button type="button" className="profile__edit profile-action surface"
           onClick={openEditor}><Icon name="edit" />Редактировать профиль</button>
       </div>
       {editor !== 'closed' && (

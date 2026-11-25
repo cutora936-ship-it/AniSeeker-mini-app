@@ -107,10 +107,10 @@ export function App() {
 
   return (
     <div className={matchPlaying ? 'app app--match-playing' : 'app'} data-search={searchShown}>
-      <header className="topbar" data-theme={activity === 'match' ? 'crimson' : undefined}>
+      <header className="topbar" data-theme={detail?.theme}>
         <div className="topbar__leading">
           <div className="wordmark" aria-label="AniSeeker" aria-hidden={searchShown}>Ani<span>Seeker</span></div>
-          <div className="search-field glass" role="search" inert={!searchShown} aria-hidden={!searchShown}>
+          <div className="search-field surface" role="search" inert={!searchShown} aria-hidden={!searchShown}>
             <Icon name="search" />
             <input ref={searchInput} type="search" inputMode="search" enterKeyHint="search"
               placeholder="Имя персонажа" aria-label="Поиск по имени персонажа"
@@ -118,12 +118,12 @@ export function App() {
           </div>
         </div>
         {detail || searchOpen ? (
-          <button key="back" type="button" className="icon-button glass topbar__action"
+          <button key="back" type="button" className="icon-button surface topbar__action"
             aria-label={detail ? 'Вернуться' : 'Закрыть поиск'} onClick={goBack}>
             <Icon name={detail ? 'back' : 'close'} />
           </button>
         ) : (
-          <button key="search" ref={actionButton} type="button" className="icon-button glass topbar__action"
+          <button key="search" ref={actionButton} type="button" className="icon-button surface topbar__action"
             aria-label="Открыть поиск" onClick={openSearch}>
             <Icon name="search" />
           </button>
@@ -135,7 +135,7 @@ export function App() {
             <CharacterDetail character={detail} hidden={activity !== null}
               onOpenActivity={availableActivity ? () => setActivity(availableActivity) : undefined} />
             {activity && (
-              <Suspense fallback={<p className="subscreen" role="status">Загрузка тренажёра…</p>}>
+              <Suspense fallback={<p className="subscreen screen-loading" role="status">Загрузка тренажёра…</p>}>
                 {activity === 'strategy' ? <Strategy onBack={goBack} /> : (
                   <MatchGame onBack={goBack} onPlayingChange={setMatchPlaying} />
                 )}
