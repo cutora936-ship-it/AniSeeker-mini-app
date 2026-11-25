@@ -16,9 +16,13 @@ export function CharacterDetail({ character }: { character: Character }) {
       aria-labelledby="detail-title">
       <DossierLabel character={character} />
       <h1 id="detail-title" ref={title} tabIndex={-1}>{character.name}</h1>
-      <div className="detail__image" role="img" aria-label="Место для изображения персонажа">
-        <CharacterPlaceholder />
-      </div>
+      {character.portrait ? (
+        <img className="detail__image detail__portrait" src={character.portrait} alt={character.name} />
+      ) : (
+        <div className="detail__image" role="img" aria-label="Место для изображения персонажа">
+          <CharacterPlaceholder />
+        </div>
+      )}
       {hasAbout && (
         <section className="detail__about glass" aria-labelledby="about-heading">
           <h2 id="about-heading">О персонаже</h2>

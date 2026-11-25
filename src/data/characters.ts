@@ -1,3 +1,5 @@
+import lightYagamiPortrait from '../assets/light-yagami.webp';
+
 export interface Character {
   id: string;
   dossier: string;
@@ -5,6 +7,7 @@ export interface Character {
   work: string;
   description: string;
   about?: readonly string[];
+  portrait?: string;
 }
 
 export const characters: readonly Character[] = [
@@ -14,6 +17,7 @@ export const characters: readonly Character[] = [
     name: 'Лайт Ягами',
     work: 'Death Note',
     description: 'Стратегическое и аналитическое мышление.',
+    portrait: lightYagamiPortrait,
     about: [
       'Лайт Ягами — главный герой аниме «Тетрадь смерти». Одарённый школьник, обладающий выдающимся интеллектом, аналитическими способностями и стратегическим мышлением.',
       'Его отличает умение анализировать сложные ситуации, выстраивать многоходовые планы и предугадывать действия окружающих. Однако чрезмерная самоуверенность, гордыня и стремление к власти постепенно становятся его главными слабостями.',
