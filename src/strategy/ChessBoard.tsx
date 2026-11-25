@@ -57,7 +57,7 @@ export function ChessBoard({ game, color, pieceIds, lastMove, selected, targets,
   }
 
   return (
-    <div className="strategy-board-frame glass">
+    <div className="strategy-board-frame surface">
       <div className="strategy-board">
         <div className="strategy-board__grid" role="grid" aria-label="Шахматная доска" aria-disabled={locked}>
           {Array.from({ length: 8 }, (_, row) => (

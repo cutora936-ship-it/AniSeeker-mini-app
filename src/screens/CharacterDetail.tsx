@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { CharacterPlaceholder, DossierLabel } from '../components/CharacterCard';
+import { CharacterPortrait } from '../components/CharacterPortrait';
 import { Icon } from '../components/Icon';
 import type { Character } from '../data/characters';
 
@@ -40,20 +41,21 @@ export function CharacterDetail({ character, hidden, onOpenActivity }: {
       <DossierLabel character={character} />
       <h1 id="detail-title" ref={title} tabIndex={-1}>{character.name}</h1>
       {character.portrait ? (
-        <img className="detail__image detail__portrait" src={character.portrait} alt={character.name} />
+        <CharacterPortrait className="detail__image detail__portrait" portrait={character.portrait}
+          variant="dossier" alt={character.name} priority />
       ) : (
         <div className="detail__image" role="img" aria-label="Место для изображения персонажа">
           <CharacterPlaceholder />
         </div>
       )}
       {hasAbout && (
-        <section className="detail__about glass" aria-labelledby="about-heading">
+        <section className="detail__about surface" aria-labelledby="about-heading">
           <h2 id="about-heading">О персонаже</h2>
           {about.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
         </section>
       )}
       {onOpenActivity && (
-        <button type="button" className="detail__strategy glass" ref={activityButton}
+        <button type="button" className="detail__strategy surface" ref={activityButton}
           onClick={onOpenActivity} aria-labelledby="activity-card-title" aria-describedby="activity-card-description">
           <span className="detail__strategy-icon" aria-hidden="true"><Icon name={activity.icon} /></span>
           <span className="detail__strategy-copy">
@@ -63,7 +65,7 @@ export function CharacterDetail({ character, hidden, onOpenActivity }: {
           <Icon name="right" />
         </button>
       )}
-      <section className="detail__materials glass" aria-labelledby="materials-heading">
+      <section className="detail__materials surface" aria-labelledby="materials-heading">
         <h2 id="materials-heading">Материалы</h2>
         <p>Здесь появятся материалы о персонаже.</p>
       </section>

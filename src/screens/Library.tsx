@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { CharacterPlaceholder, FavoriteButton } from '../components/CharacterCard';
+import { CharacterPortrait } from '../components/CharacterPortrait';
 import { Icon, type IconName } from '../components/Icon';
 import type { Character } from '../data/characters';
 
@@ -10,7 +11,7 @@ export function EmptyState({ icon, title, children }: {
 }) {
   return (
     <div className="empty-state">
-      <span className="empty-state__icon glass"><Icon name={icon} /></span>
+      <span className="empty-state__icon surface"><Icon name={icon} /></span>
       <h2>{title}</h2>
       <p>{children}</p>
     </div>
@@ -26,10 +27,10 @@ export function CharacterList({ characters, favoriteIds, onFavorite, onOpen }: {
   return (
     <ul className="character-list">
       {characters.map((character) => (
-        <li className="character-row glass" key={character.id}>
+        <li className="character-row surface" data-theme={character.theme} key={character.id}>
           <button type="button" className="character-row__open" onClick={() => onOpen(character)}>
             {character.portrait ? (
-              <img className="character-row__portrait" src={character.portrait} alt="" loading="lazy" />
+              <CharacterPortrait className="character-row__portrait" portrait={character.portrait} variant="thumbnail" />
             ) : (
               <CharacterPlaceholder compact />
             )}

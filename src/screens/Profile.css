@@ -18,7 +18,8 @@
   place-items: center;
   overflow: hidden;
   border-radius: 50%;
-  color: #e5cfff;
+  color: var(--accent);
+  background: var(--accent-surface);
 }
 
 .profile-avatar > img {
@@ -35,8 +36,8 @@
   inset: auto 0 0 auto;
   width: 2.75rem;
   border-radius: 50%;
-  color: #ead7ff;
-  background: linear-gradient(150deg, #593a76, #291d39);
+  color: var(--accent);
+  background: var(--accent-surface);
 }
 
 .profile__camera.icon-button svg { width: 48%; height: 48%; }
@@ -60,9 +61,9 @@
 
 .profile__edit { grid-column: 1 / -1; }
 .profile__edit svg,
-.profile-photo-action svg { width: 1.18rem; height: 1.18rem; color: #d3adfc; }
+.profile-photo-action svg { width: 1.18rem; height: 1.18rem; color: var(--accent); }
 
-.profile-editor.glass {
+.profile-editor.surface {
   --profile-pad-top: max(.65rem, var(--safe-top));
   --profile-pad-bottom: max(.65rem, var(--safe-bottom));
   --profile-editor-height: calc(var(--profile-viewport-height, 100dvh) - var(--profile-pad-top) - var(--profile-pad-bottom));
@@ -78,15 +79,14 @@
   margin: 0;
   padding: 0;
   border-radius: 1.2rem;
-  background-color: #241b32;
+  background: var(--surface);
   color: var(--text);
-  box-shadow: inset 0 1px 2px #f7e5ff38, 0 .7rem 2.7rem #09050e97;
 }
 
 .profile-editor[open] { animation: soft-arrive .16s var(--ease) both; }
 
 .profile-editor::backdrop {
-  background: rgb(12 8 19 / 74%);
+  background: rgb(0 0 0 / 72%);
 }
 
 .profile-editor__form {
@@ -117,7 +117,7 @@
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  scrollbar-color: #6d5188 transparent;
+  scrollbar-color: var(--rim-strong) transparent;
   padding: .1rem .95rem .7rem;
 }
 
@@ -135,7 +135,7 @@
   border: 1px solid var(--rim);
   border-radius: .72rem;
   color: var(--text);
-  background: #1a1325;
+  background: var(--panel);
   font-size: 1rem;
   caret-color: var(--accent);
 }
@@ -194,15 +194,15 @@
 .profile-editor__actions > p { grid-column: 1 / -1; }
 
 .profile-action--primary {
-  color: #231432;
-  background: #c9a4f1;
+  color: var(--on-accent);
+  background: var(--accent);
 }
 
-.profile-action--primary:focus-visible { outline-color: #3a234e; }
+.profile-action--primary:focus-visible { outline-color: var(--on-accent); }
 .profile-editor button:disabled { opacity: .65; cursor: default; }
 
 @media (hover: hover) {
   .profile__edit:hover, .profile-photo-action:hover, .profile-action:hover { border-color: var(--accent); }
-  .profile-photo-remove:hover { background: #d87ca71c; }
-  .profile-action--primary:hover { background: #d9bafa; }
+  .profile-photo-remove:hover { background: #35252c; }
+  .profile-action--primary:hover { background: var(--accent-hover); }
 }

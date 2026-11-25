@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Icon } from '../components/Icon';
-import { AvatarError, avatarFileTypes, prepareAvatar } from './avatar';
+import { AvatarError, avatarFileTypes } from './avatar';
 import { ProfileAvatar } from './ProfileAvatar';
 import { nicknameLength, validateNickname } from './storage';
 
@@ -80,6 +80,8 @@ export function ProfileEditor({ name, image, hasAvatar, saving, onCancel, onSave
     setPhotoError('');
     setSaveError('');
     try {
+      const { prepareAvatar } = await import('./prepareAvatar');
+      if (!mounted.current) return;
       const photo = await prepareAvatar(file);
       if (mounted.current) setAvatarChange(photo);
     } catch (error) {
@@ -113,12 +115,12 @@ export function ProfileEditor({ name, image, hasAvatar, saving, onCancel, onSave
   }
 
   return (
-    <dialog ref={dialog} className="profile-editor glass" aria-labelledby="profile-editor-title"
+    <dialog ref={dialog} className="profile-editor surface" aria-labelledby="profile-editor-title"
       onCancel={(event) => { event.preventDefault(); if (!pending.current) onCancel(); }}>
       <form className="profile-editor__form" onSubmit={submit} noValidate>
         <div className="profile-editor__header">
           <h2 id="profile-editor-title" ref={title} tabIndex={-1}>Редактировать профиль</h2>
-          <button type="button" className="profile-editor__close icon-button glass" aria-label="Закрыть редактор"
+          <button type="button" className="profile-editor__close icon-button surface" aria-label="Закрыть редактор"
             disabled={saving} onClick={onCancel}><Icon name="close" /></button>
         </div>
         <div className="profile-editor__fields" ref={fields}>
@@ -136,7 +138,7 @@ export function ProfileEditor({ name, image, hasAvatar, saving, onCancel, onSave
             <div className="profile-editor__photo-controls">
               <input type="file" aria-label="Файл аватарки" accept={avatarFileTypes} ref={fileInput} hidden
                 onChange={choosePhoto} />
-              <button type="button" className="profile-photo-action glass" disabled={saving || processing}
+              <button type="button" className="profile-photo-action surface" disabled={saving || processing}
                 onClick={() => fileInput.current?.click()}>
                 <Icon name="camera" />{canRemove ? 'Заменить фото' : 'Выбрать фото'}
               </button>
@@ -153,7 +155,7 @@ export function ProfileEditor({ name, image, hasAvatar, saving, onCancel, onSave
         </div>
         <div className="profile-editor__actions">
           {saveError && <p className="profile-form-error" role="alert">{saveError}</p>}
-          <button type="button" className="profile-action glass" disabled={saving} onClick={onCancel}>Отмена</button>
+          <button type="button" className="profile-action surface" disabled={saving} onClick={onCancel}>Отмена</button>
           <button type="submit" className="profile-action profile-action--primary" disabled={saving || processing}>
             {saving ? 'Сохранение…' : 'Сохранить'}
           </button>

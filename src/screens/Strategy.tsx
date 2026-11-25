@@ -22,7 +22,7 @@ function StrategyDialog({ title, children, cancel }: {
   }, []);
 
   return (
-    <dialog className="strategy-dialog glass" ref={dialog} aria-labelledby="strategy-dialog-title"
+    <dialog className="strategy-dialog surface" ref={dialog} aria-labelledby="strategy-dialog-title"
       onKeyDown={(event) => { if (cancel && event.key === 'Escape') event.stopPropagation(); }}
       onCancel={(event) => { event.preventDefault(); cancel?.(); }}>
       <h2 id="strategy-dialog-title">{title}</h2>
@@ -69,14 +69,14 @@ export default function Strategy({ onBack }: { onBack: () => void }) {
   const panel = useRef<HTMLElement>(null);
   const puzzleIndex = strategyPuzzles.findIndex(({ id }) => id === progress.puzzleId);
   const puzzle = strategyPuzzles[puzzleIndex];
-  const attempt = evaluateAttempt(puzzle, progress.moves);
+  const attempt = useMemo(() => evaluateAttempt(puzzle, progress.moves), [puzzle, progress.moves]);
   const { game, pieceIds, lastMove } = useMemo(
     () => replayPosition(puzzle, progress.moves), [puzzle, progress.moves],
   );
   const color = puzzle.fen.split(' ')[1] === 'b' ? 'b' : 'w';
-  const legalMoves = selected && attempt.status === 'playing'
+  const legalMoves = useMemo(() => selected && attempt.status === 'playing'
     ? game.moves({ square: selected, verbose: true })
-    : [];
+    : [], [attempt.status, game, selected]);
   const targets = [...new Set(legalMoves.map((move) => move.to))];
   const outcome = attempt.status === 'won' || attempt.status === 'lost' ? attempt.status : null;
   const reply = attempt.status === 'reply' ? attempt.move : null;
@@ -156,7 +156,7 @@ export default function Strategy({ onBack }: { onBack: () => void }) {
         </div>
       </div>
 
-      <div className="strategy-task glass">
+      <div className="strategy-task surface">
         <div className="strategy-task__header">
           <h2>{puzzle.title}</h2>
           <span className="strategy-turn">
@@ -170,11 +170,11 @@ export default function Strategy({ onBack }: { onBack: () => void }) {
         selected={selected} targets={targets} locked={attempt.status !== 'playing'} onSquare={chooseSquare} />
 
       <div className="strategy-controls">
-        <button type="button" className="strategy-control glass" aria-expanded={hintOpen}
+        <button type="button" className="strategy-control surface" aria-expanded={hintOpen}
           aria-controls="strategy-hint" onClick={() => setHintOpen((shown) => !shown)}>
           <Icon name="hint" />Подсказка
         </button>
-        <button type="button" className="strategy-control glass" onClick={() => start(puzzle.id)}>
+        <button type="button" className="strategy-control surface" onClick={() => start(puzzle.id)}>
           <Icon name="restart" />Перезапуск
         </button>
       </div>
@@ -186,7 +186,7 @@ export default function Strategy({ onBack }: { onBack: () => void }) {
           <p>Выбери фигуру.</p>
           <div className="strategy-promotion">
             {promotion.map((move) => move.promotion && (
-              <button className="strategy-control glass" type="button" key={move.lan}
+              <button className="strategy-control surface" type="button" key={move.lan}
                 onClick={() => play(move)} aria-label={pieceNames[move.promotion]}>
                 <img src={pieceImage(color, move.promotion)} alt="" />
               </button>
@@ -204,7 +204,7 @@ export default function Strategy({ onBack }: { onBack: () => void }) {
             {won && <Icon name="right" />}
           </button>
           {won && !nextPuzzle && (
-            <button type="button" className="strategy-control glass strategy-result-retry" onClick={() => start(puzzle.id)}>
+            <button type="button" className="strategy-control surface strategy-result-retry" onClick={() => start(puzzle.id)}>
               <Icon name="restart" />Сыграть ещё раз
             </button>
           )}

@@ -4,7 +4,7 @@ import { readRecords, saveResult, type MatchResult } from './records';
 
 type Session =
   | { phase: 'welcome' }
-  | { phase: 'playing'; pair: MatchRound; startedAt: number; hits: number; errors: number }
+  | { phase: 'playing'; pair: MatchRound; startedAt: number; hits: number; errors: number; finishedDuration?: number }
   | { phase: 'results'; result: MatchResult; newRecord: boolean };
 
 export interface Feedback {
@@ -17,16 +17,8 @@ export function useMatch(onPlayingChange: (active: boolean) => void) {
   const [session, setSession] = useState<Session>({ phase: 'welcome' });
   const [records, setRecords] = useState(readRecords);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const [elapsed, setElapsed] = useState(0);
   const locked = useRef(false);
   const feedbackTimeout = useRef<number | undefined>(undefined);
-  const startedAt = session.phase === 'playing' && session.hits < roundsPerGame ? session.startedAt : null;
-
-  useEffect(() => {
-    if (startedAt === null) return;
-    const timer = window.setInterval(() => setElapsed(performance.now() - startedAt), 100);
-    return () => window.clearInterval(timer);
-  }, [startedAt]);
 
   useEffect(() => () => window.clearTimeout(feedbackTimeout.current), []);
 
@@ -38,7 +30,6 @@ export function useMatch(onPlayingChange: (active: boolean) => void) {
     window.clearTimeout(feedbackTimeout.current);
     locked.current = false;
     setFeedback(null);
-    setElapsed(0);
     setSession({ phase: 'playing', pair: makeRound(), startedAt: performance.now(), hits: 0, errors: 0 });
     onPlayingChange(true);
   }
@@ -51,14 +42,12 @@ export function useMatch(onPlayingChange: (active: boolean) => void) {
     const errors = session.errors + Number(!correct);
     const next = { ...session, hits, errors };
     setFeedback({ id, card, correct });
-    setSession(next);
-
     if (hits === roundsPerGame) {
       const duration = performance.now() - session.startedAt;
       const result = { hits, errors, duration };
       const saved = saveResult(result, records);
+      setSession({ ...next, finishedDuration: duration });
       setRecords(saved.records);
-      setElapsed(duration);
       feedbackTimeout.current = window.setTimeout(() => {
         setFeedback(null);
         setSession({ phase: 'results', result, newRecord: saved.newRecord });
@@ -67,11 +56,12 @@ export function useMatch(onPlayingChange: (active: boolean) => void) {
       return;
     }
 
+    setSession(next);
     feedbackTimeout.current = window.setTimeout(() => {
       if (correct) setSession({ ...next, pair: makeRound() });
       setFeedback(null);
     }, correct ? 300 : 230);
   }
 
-  return { session, records, feedback, elapsed, start, answer };
+  return { session, records, feedback, start, answer };
 }
