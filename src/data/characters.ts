@@ -11,6 +11,7 @@ export interface Character {
   portrait?: string;
   theme?: 'crimson';
   strategy?: boolean;
+  observation?: boolean;
 }
 
 export const characters: readonly Character[] = [
@@ -36,6 +37,7 @@ export const characters: readonly Character[] = [
     description: 'Наблюдательность и анализ поведения людей.',
     portrait: ayanokojiPortrait,
     theme: 'crimson',
+    observation: true,
     about: [
       'Киётака Аянокоджи — главный герой аниме «Класс превосходства». В школе он держится в стороне и скрывает свои способности. Его сильные стороны — наблюдательность, самообладание и умение анализировать поступки людей.',
       'В сложных ситуациях Аянокоджи внимательно следит за тем, что люди говорят и делают. Он сопоставляет детали, замечает противоречия и учитывает, как события могут повлиять на решения окружающих.',

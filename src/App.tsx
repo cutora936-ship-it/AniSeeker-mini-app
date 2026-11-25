@@ -10,6 +10,7 @@ import { CharacterList, EmptyState } from './screens/Library';
 import { Profile } from './screens/Profile';
 
 const Strategy = lazy(() => import('./screens/Strategy'));
+const MatchGame = lazy(() => import('./screens/MatchGame'));
 
 export function App() {
   const [tab, setTab] = useState<Tab>('home');
@@ -17,15 +18,17 @@ export function App() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [detail, setDetail] = useState<Character | null>(null);
-  const [strategyOpen, setStrategyOpen] = useState(false);
+  const [activity, setActivity] = useState<'strategy' | 'match' | null>(null);
+  const [matchPlaying, setMatchPlaying] = useState(false);
   const { favoriteIds, toggleFavorite } = useFavorites();
   const searchInput = useRef<HTMLInputElement>(null);
   const actionButton = useRef<HTMLButtonElement>(null);
   const restoreActionFocus = useRef(false);
 
   const goBack = useCallback(() => {
-    if (strategyOpen) {
-      setStrategyOpen(false);
+    if (activity) {
+      setActivity(null);
+      setMatchPlaying(false);
       return;
     }
     if (detail) {
@@ -36,7 +39,7 @@ export function App() {
     }
 
     restoreActionFocus.current = true;
-  }, [detail, strategyOpen]);
+  }, [detail, activity]);
 
   const overlayOpen = Boolean(detail || searchOpen);
   const user = useTelegram(overlayOpen ? goBack : undefined);
@@ -66,7 +69,8 @@ export function App() {
   function changeTab(next: Tab) {
     setTab(next);
     setDetail(null);
-    setStrategyOpen(false);
+    setActivity(null);
+    setMatchPlaying(false);
     setSearchOpen(false);
     setQuery('');
   }
@@ -76,10 +80,11 @@ export function App() {
     .filter((character): character is Character => Boolean(character));
   const results = searchOpen ? searchCharacters(characters, query) : [];
   const listProps = { favoriteIds, onFavorite: toggleFavorite, onOpen: setDetail };
+  const availableActivity = detail?.observation ? 'match' : detail?.strategy ? 'strategy' : null;
 
   return (
-    <div className="app">
-      <header className="topbar">
+    <div className={matchPlaying ? 'app app--match-playing' : 'app'}>
+      <header className="topbar" data-theme={activity === 'match' ? 'crimson' : undefined}>
         {searchOpen && !detail ? (
           <div className="search-field glass" role="search">
             <Icon name="search" />
@@ -105,11 +110,13 @@ export function App() {
       <main className="main">
         {detail ? (
           <>
-            <CharacterDetail character={detail} hidden={strategyOpen}
-              onOpenStrategy={detail.strategy ? () => setStrategyOpen(true) : undefined} />
-            {strategyOpen && (
+            <CharacterDetail character={detail} hidden={activity !== null}
+              onOpenActivity={availableActivity ? () => setActivity(availableActivity) : undefined} />
+            {activity && (
               <Suspense fallback={<p className="subscreen" role="status">Загрузка тренажёра…</p>}>
-                <Strategy onBack={goBack} />
+                {activity === 'strategy' ? <Strategy onBack={goBack} /> : (
+                  <MatchGame onBack={goBack} onPlayingChange={setMatchPlaying} />
+                )}
               </Suspense>
             )}
           </>
@@ -142,7 +149,7 @@ export function App() {
             {...listProps} />
         )}
       </main>
-      <Navigation current={tab} onChange={changeTab} />
+      {!matchPlaying && <Navigation current={tab} onChange={changeTab} />}
     </div>
   );
 }
