@@ -15,6 +15,7 @@ import { Profile } from './screens/Profile';
 const Strategy = lazy(() => import('./screens/Strategy'));
 const MatchGame = lazy(() => import('./screens/MatchGame'));
 const Mastermind = lazy(() => import('./screens/Mastermind'));
+const BodyLanguage = lazy(() => import('./screens/BodyLanguage'));
 
 export function App() {
   const [tab, setTab] = useState<Tab>('home');
@@ -140,6 +141,7 @@ export function App() {
                   <MatchGame onBack={goBack} onPlayingChange={setMatchPlaying} />
                 )}
                 {activity === 'mastermind' && <Mastermind onBack={goBack} />}
+                {activity === 'body-language' && <BodyLanguage onBack={goBack} />}
               </Suspense>
             )}
           </>

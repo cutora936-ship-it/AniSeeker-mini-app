@@ -6,7 +6,7 @@ import type { Activity, Character } from '../data/characters';
 
 const activityCards: readonly {
   id: Activity;
-  flag: 'strategy' | 'observation' | 'mastermind';
+  flag: 'strategy' | 'observation' | 'mastermind' | 'bodyLanguage';
   icon: IconName;
   title: string;
   description: string;
@@ -17,6 +17,8 @@ const activityCards: readonly {
     description: 'Расшифровывай секретные комбинации, анализируй подсказки и исключай невозможные варианты.' },
   { id: 'match', flag: 'observation', icon: 'observation', title: 'Совпадение',
     description: 'Развивай наблюдательность, концентрацию и скорость зрительного поиска, находя одинаковые символы.' },
+  { id: 'body-language', flag: 'bodyLanguage', icon: 'bodyLanguage', title: 'Язык тела',
+    description: 'Изучай жесты, мимику и невербальные сигналы, чтобы лучше понимать человеческое поведение.' },
 ];
 
 export function CharacterDetail({ character, hidden, onOpenActivity }: {
