@@ -15,12 +15,16 @@ export interface Decision {
 }
 
 export interface Run {
+  version?: 2;
   role: Role;
   started: number;
   decisions: Decision[];
   // The destination chapter stays closed until the player leaves the recap.
   openedChapter: number;
   finished: boolean;
+  delivered?: number;
+  received?: Record<number, number>;
+  chapterTimes?: Record<number, number>;
 }
 
 export interface Message {
@@ -41,7 +45,7 @@ export function chooseEnding(story: Story, memory: Memory): Ending {
 }
 
 export function newRun(role: Role, at = Date.now()): Run {
-  return { role, started: at, decisions: [], openedChapter: 0, finished: false };
+  return { version: 2, role, started: at, decisions: [], openedChapter: 0, finished: false, delivered: 0 };
 }
 
 export function replay(story: Story, run: Run) {
@@ -56,8 +60,9 @@ export function replay(story: Story, run: Run) {
     const node = story.nodes[id];
     if (!node || node.chapter > run.openedChapter) return;
     const callbacks = node.remember?.filter(({ when }) => matches(memory, when)).map(({ text }) => text) ?? [];
+    const entryTime = run.chapterTimes?.[node.chapter];
     for (const text of [...callbacks, ...node.messages]) {
-      history.push({ by: 'partner', text, at, chapter: node.chapter });
+      history.push({ by: 'partner', text, at: run.received?.[history.length] ?? Math.max(at, entryTime ?? at), chapter: node.chapter });
     }
   }
 
@@ -70,7 +75,7 @@ export function replay(story: Story, run: Run) {
     time = decision.at;
     history.push({ by: 'player', text: choice.text, at: time, chapter: node.chapter });
     guide = history.length;
-    history.push({ by: 'partner', text: choice.reply, at: time, chapter: node.chapter });
+    history.push({ by: 'partner', text: choice.reply, at: run.received?.[history.length] ?? time, chapter: node.chapter });
     chosen.push({ node: nodeId, chapter: node.chapter, choice });
     memory = { ...memory, ...choice.changes };
     nodeId = choice.branches?.find(({ when }) => matches(memory, when))?.next ?? choice.next;
@@ -89,8 +94,14 @@ export function replay(story: Story, run: Run) {
   };
 }
 
+export function recordDelivery(run: Run, index: number, at: number): Run {
+  if (run.delivered !== index) return run;
+  return { ...run, delivered: index + 1, received: { ...run.received, [index]: at } };
+}
+
 export function takeChoice(story: Story, run: Run, choice: number, at = Date.now()): Run {
   const state = replay(story, run);
   if (run.finished || state.gate || !state.next?.choices[choice]) return run;
-  return { ...run, decisions: [...run.decisions, { node: state.next.id, choice, at }] };
+  return { ...run, delivered: state.history.length + 1,
+    decisions: [...run.decisions, { node: state.next.id, choice, at }] };
 }

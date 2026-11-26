@@ -49,3 +49,10 @@ export function assemble(
   ]);
   return { id, person, chapters, start: beats[0].id, nodes, endings, conclusions };
 }
+
+export function compose(
+  id: string, person: Story['person'], titles: readonly string[],
+  data: Parameters<typeof assemble>[2], endings: Story['endings'], extra: Parameters<typeof assemble>[4],
+): Story {
+  return { ...assemble(id, person, data, endings, extra), chapters: titles };
+}
