@@ -6,6 +6,7 @@ import johanPortrait from '../assets/johan-liebert-768.webp';
 import lightYagamiThumb from '../assets/light-yagami-144.webp';
 import lightYagamiMedium from '../assets/light-yagami-768.webp';
 import lightYagamiLarge from '../assets/light-yagami-1254.webp';
+import sakutaPortrait from '../assets/sakuta-azusagawa.webp';
 
 export interface Portrait {
   thumbnail: string;
@@ -23,7 +24,7 @@ export interface Character {
   description: string;
   about?: readonly string[];
   portrait?: Portrait;
-  theme?: 'crimson' | 'gold';
+  theme?: 'crimson' | 'gold' | 'blue';
   strategy?: boolean;
   observation?: boolean;
   mastermind?: boolean;
@@ -76,15 +77,29 @@ export const characters: readonly Character[] = [
     ],
   },
   {
-    id: 'mika',
+    id: 'sakuta-azusagawa',
     dossier: '004',
+    name: 'Сакута Адзусагава',
+    work: 'BUNNY GIRL SENPAI',
+    description: 'Психология влюблённости и искусство общения.',
+    portrait: { thumbnail: sakutaPortrait, medium: sakutaPortrait },
+    theme: 'blue',
+    about: [
+      'Сакута Адзусагава — главный герой аниме «Этот глупый свин не понимает мечту девочки-зайки». Он отличается прямолинейностью, чувством юмора, уверенностью в общении и способностью понимать чувства окружающих.',
+      'Его умение открыто выражать свои мысли, внимательно относиться к собеседнику и сохранять естественность помогает ему выстраивать доверительные отношения.',
+      'В этом разделе ты познакомишься с психологией влюблённости, искусством общения, харизмой, формированием первого впечатления и развитием взаимной симпатии.',
+    ],
+  },
+  {
+    id: 'mika',
+    dossier: '005',
     name: 'Мика',
     work: 'Тестовая карточка',
     description: 'Любопытство и открытость к новому.',
   },
   {
     id: 'sora',
-    dossier: '005',
+    dossier: '006',
     name: 'Сора',
     work: 'Тестовая карточка',
     description: 'Спокойствие и внимание к окружающим.',
