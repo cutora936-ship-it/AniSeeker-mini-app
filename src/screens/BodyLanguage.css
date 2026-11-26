@@ -1,0 +1,214 @@
+.body-language {
+  --body-correct-ink: #b4e6bd;
+  --body-correct-panel: #192e22;
+  --body-wrong-ink: #f2b0b0;
+  --body-wrong-panel: #372023;
+}
+
+.body-language > h1 { margin-bottom: .65rem; }
+.body-language :is(h1, .body-language-feedback):focus { outline: 0; }
+.body-language h2 { font-size: 1.02rem; font-weight: 800; line-height: 1.35; }
+
+.body-language-intro,
+.body-language-situation,
+.body-language-panel p,
+.body-language-review > p {
+  color: var(--muted);
+  font-size: .92rem;
+  line-height: 1.55;
+}
+
+.body-language-panel {
+  padding: .85rem;
+  border-radius: 1rem;
+}
+
+.body-language-intro { max-width: 39ch; margin-bottom: .9rem; }
+
+.body-language-panel__title {
+  display: flex;
+  align-items: center;
+  gap: .66rem;
+}
+
+.body-language-panel__title p { font-size: .81rem; }
+
+.body-language-icon {
+  display: grid;
+  width: 2.5rem;
+  aspect-ratio: 1;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--rim);
+  border-radius: .74rem;
+  background: var(--accent-surface);
+  color: var(--accent);
+}
+
+.body-language-icon svg { width: 1.32rem; height: 1.32rem; }
+
+.body-language-rules {
+  display: grid;
+  gap: .48rem;
+  margin: .85rem 0;
+  padding-inline-start: 1.22rem;
+  color: var(--text);
+  font-size: .91rem;
+  line-height: 1.5;
+}
+
+.body-language-rules ::marker { color: var(--accent); font-weight: 800; }
+.body-language-panel .body-language-note { padding-top: .67rem; border-top: 1px solid var(--rim); }
+
+.body-language-progress { display: grid; gap: .36rem; margin-bottom: .6rem; }
+.body-language-progress span { color: var(--muted); font-size: .83rem; }
+.body-language-progress strong { color: var(--text); font-variant-numeric: tabular-nums; }
+
+.body-language-progress progress {
+  display: block;
+  appearance: none;
+  width: 100%;
+  height: .35rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: .25rem;
+  color: var(--accent);
+  background: var(--accent-surface);
+}
+
+.body-language-progress progress::-webkit-progress-bar { background: var(--accent-surface); }
+.body-language-progress progress::-webkit-progress-value { background: var(--accent); border-radius: .25rem; }
+.body-language-progress progress::-moz-progress-bar { background: var(--accent); border-radius: .25rem; }
+
+.body-language-art {
+  display: block;
+  width: min(100%, clamp(12rem, 37dvh, 20rem));
+  height: auto;
+  aspect-ratio: 1;
+  margin-inline: auto;
+  border: 1px solid var(--rim);
+  border-radius: .98rem;
+  background: #fff;
+}
+
+.body-language-situation { margin-block: .68rem .44rem; }
+.body-language-options { display: grid; gap: .42rem; margin-top: .5rem; }
+
+.body-language-option {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: .57rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: .5rem .55rem;
+  border-radius: .75rem;
+  background: #222;
+  text-align: start;
+  font-size: .86rem;
+  line-height: 1.4;
+}
+
+.body-language-option__mark {
+  display: grid;
+  width: 1.68rem;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 1px solid var(--rim);
+  border-radius: .45rem;
+  color: var(--accent);
+  background: var(--surface);
+  font-size: .71rem;
+  font-weight: 800;
+}
+
+.body-language-option__mark svg { width: 1.03rem; height: 1.03rem; }
+.body-language-option:disabled { cursor: default; opacity: 1; -webkit-text-fill-color: currentColor; }
+.body-language-option small { display: block; margin-top: .17rem; font-size: .74rem; font-weight: 800; }
+
+.body-language-option[data-status="correct"] {
+  --feedback-ink: var(--body-correct-ink);
+  border-color: #548867;
+  background: var(--body-correct-panel);
+}
+
+.body-language-option[data-status="wrong"] {
+  --feedback-ink: var(--body-wrong-ink);
+  border-color: #a05b60;
+  background: var(--body-wrong-panel);
+}
+
+.body-language-option[data-status] :is(.body-language-option__mark, small) { color: var(--feedback-ink); }
+.body-language-response { margin-top: .63rem; }
+.body-language-feedback { background: #222; }
+.body-language-feedback h2 { margin-bottom: .3rem; }
+
+.body-language-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .47rem;
+  width: 100%;
+  min-height: 2.75rem;
+  margin-top: .64rem;
+  padding: .45rem .6rem;
+  border-radius: .75rem;
+  font-size: .88rem;
+  font-weight: 800;
+}
+
+.body-language-button svg { width: 1.1rem; height: 1.1rem; }
+
+.body-language-button--primary {
+  border: 1px solid transparent;
+  color: var(--on-accent);
+  background: var(--accent);
+}
+
+.body-language-button--primary:focus-visible { outline-color: var(--on-accent); }
+.body-language-results { padding: .7rem; }
+
+.body-language-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .28rem;
+  margin: 0;
+  text-align: center;
+}
+
+.body-language-stats > div + div { border-inline-start: 1px solid var(--rim); }
+.body-language-stats dt { color: var(--muted); font-size: .74rem; }
+.body-language-stats dd { margin: .14rem 0 0; font-size: 1.32rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.body-language-results p {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: .28rem .5rem;
+  margin-top: .6rem;
+  padding-top: .55rem;
+  border-top: 1px solid var(--rim);
+}
+
+.body-language-results strong { color: var(--accent); }
+.body-language-review { display: grid; gap: .4rem; margin-top: .85rem; }
+.body-language-review details { padding-block: .35rem; }
+
+.body-language-review summary {
+  min-height: 2.75rem;
+  padding-block: .61rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  font-size: .86rem;
+  font-weight: 750;
+}
+
+.body-language-review summary::marker { color: var(--accent); }
+.body-language-review summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: .25rem; }
+.body-language-review details p { margin-bottom: .42rem; font-size: .86rem; }
+.body-language-review details strong { color: var(--text); }
+
+@media (hover: hover) {
+  .body-language-option:hover:not(:disabled), .body-language-button.surface:hover { border-color: var(--accent); }
+  .body-language-button--primary:hover { background: var(--accent-hover); }
+}
