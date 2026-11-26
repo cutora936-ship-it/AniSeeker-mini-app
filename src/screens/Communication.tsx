@@ -1,9 +1,11 @@
-import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { memo, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Icon } from '../components/Icon';
-import { newRun, replay, skills, takeChoice, type Message, type Run } from '../communication/engine';
+import { newRun, recordDelivery, replay, skills, takeChoice, type Message, type Run } from '../communication/engine';
+import { createAudio, readSound, writeSound } from '../communication/audio';
+import { afterDelivery, scheduleMessage, typingDelay, type Phase } from '../communication/queue';
 import { readSave, writeSave, type Saved } from '../communication/storage';
 import type { Role, Story } from '../communication/types';
-import { stories } from '../data/communication';
+import { stories, storyFor } from '../data/communication';
 import './Communication.css';
 
 type State = ReturnType<typeof replay>;
@@ -32,32 +34,43 @@ function Confirm({ title, children, cancel, confirm, action, cancelLabel }: {
   );
 }
 
-const Bubble = memo(function Bubble({ message, name }: { message: Message; name: string }) {
+const Bubble = memo(function Bubble({ message, name, at, fresh = false }: {
+  message: Message; name: string; at: number; fresh?: boolean;
+}) {
   return (
-    <li className="communication-message" data-by={message.by}>
+    <li className="communication-message" data-by={message.by} data-fresh={fresh || undefined}>
       <span className="communication-sr">{message.by === 'player' ? 'Твой персонаж' : name}. </span>
       <p>{message.text}</p>
-      <time>{clock.format(message.at)}</time>
+      <time dateTime={new Date(at).toISOString()}>{clock.format(at)}</time>
     </li>
   );
 });
 
-function Chat({ story, run, state, onChoice, onReview }: {
+function Chat({ story, run, state, onChoice, onReview, onDelivery }: {
   story: Story; run: Run; state: State; onChoice: (index: number) => void; onReview: () => void;
+  onDelivery: (index: number, at: number) => void;
 }) {
-  const [shown, setShown] = useState(state.guide);
+  const [shown, setShown] = useState(run.delivered ?? state.guide);
+  const [arrivals, setArrivals] = useState<Record<number, number>>({});
+  const [phase, setPhase] = useState<Phase>(shown < state.history.length ? 'typing' : 'idle');
+  const [fast, setFast] = useState(false);
   const [limit, setLimit] = useState(26);
   const thread = useRef<HTMLDivElement>(null);
   const earlierAnchor = useRef<{ height: number; top: number }>(null);
-  const revealing = shown < state.history.length;
-  const skip = () => setShown(state.history.length);
   const first = Math.max(0, shown - limit);
+  const deliver = useEffectEvent(() => {
+    const at = Date.now();
+    onDelivery(shown, at);
+    setArrivals((previous) => ({ ...previous, [shown]: at }));
+    setShown(shown + 1);
+    setPhase(afterDelivery(shown, state.history.length));
+  });
 
   useEffect(() => {
-    if (!revealing) return;
-    const timer = window.setTimeout(() => setShown(shown + 1), shown === state.guide ? 320 : 260);
-    return () => window.clearTimeout(timer);
-  }, [revealing, shown, state.guide]);
+    if (phase === 'idle') return;
+    if (phase === 'pause') return scheduleMessage(fast ? 75 : 230, () => setPhase('typing'));
+    return scheduleMessage(fast ? 140 : typingDelay(state.history[shown].text), deliver);
+  }, [phase, fast, shown, state.history]);
 
   useLayoutEffect(() => {
     const element = thread.current;
@@ -65,7 +78,7 @@ function Chat({ story, run, state, onChoice, onReview }: {
     const anchor = earlierAnchor.current;
     element.scrollTop = anchor ? anchor.top + element.scrollHeight - anchor.height : element.scrollHeight;
     earlierAnchor.current = null;
-  }, [shown, limit]);
+  }, [shown, limit, phase]);
 
   function showEarlier() {
     const element = thread.current;
@@ -78,21 +91,32 @@ function Chat({ story, run, state, onChoice, onReview }: {
     <div className="communication-chat">
       <header className="communication-contact">
         <img src={story.person.avatar} alt="" width={42} height={42} />
-        <div><h1>{story.person.name}</h1><p>Глава {run.openedChapter + 1} · {story.chapters[run.openedChapter]}</p></div>
+        <div><h1>{story.person.name}</h1><p>Глава {run.openedChapter + 1} · {story.chapters[run.openedChapter]}</p>
+          <span className="communication-contact__status" role="status">{phase === 'typing' ? 'печатает…' : ''}</span>
+        </div>
       </header>
       <div className="communication-thread" ref={thread} role="region" tabIndex={0} aria-label="Переписка">
         {first > 0 && <button type="button" className="communication-earlier" onClick={showEarlier}>Показать более ранние сообщения</button>}
         <ol aria-label="Сообщения" aria-live="polite" aria-relevant="additions">
-          {state.history.slice(first, shown).map((message, index) => <Bubble key={first + index} name={story.person.name} message={message} />)}
+          {state.history.slice(first, shown).map((message, index) => {
+            const position = first + index;
+            return [
+              (position === first || state.history[position - 1].chapter !== message.chapter) &&
+                <li className="communication-day" key={`day-${message.chapter}`}>День {message.chapter + 1}</li>,
+              <Bubble key={position} name={story.person.name} message={message}
+                at={arrivals[position] ?? message.at} fresh={arrivals[position] !== undefined} />,
+            ];
+          })}
         </ol>
+        {phase === 'typing' && <div className="communication-dots" aria-hidden="true"><i /><i /><i /></div>}
       </div>
       <div className="communication-replies">
-        {revealing ? (
-          <button type="button" className="communication-typing" onClick={skip}>
-            <span aria-hidden="true">···</span> Печатает <strong>Показать сразу</strong>
+        {phase !== 'idle' ? (
+          <button type="button" className="communication-typing" aria-pressed={fast} onClick={() => setFast((value) => !value)}>
+            <strong>{fast ? 'Обычный темп' : 'Ускорить переписку'}</strong>
           </button>
         ) : state.gate ? (
-          <button className="communication-button communication-button--primary" type="button" onClick={onReview}>
+          <button className="communication-button communication-button--primary" type="button" data-chapter-review onClick={onReview}>
             Разбор главы <Icon name="right" />
           </button>
         ) : (
@@ -132,7 +156,7 @@ function Review({ story, state, chapter }: { story: Story; state: State; chapter
           <summary>Переписка главы</summary>
           <ol className="communication-transcript">
             {state.history.filter((message) => message.chapter === chapter).map((message, index) => (
-              <Bubble key={index} name={story.person.name} message={message} />
+              <Bubble key={index} name={story.person.name} message={message} at={message.at} />
             ))}
           </ol>
         </details>
@@ -142,7 +166,10 @@ function Review({ story, state, chapter }: { story: Story; state: State; chapter
 }
 
 export default function Communication({ onBack }: { onBack: () => void }) {
-  const [save, setSave] = useState(() => readSave(stories));
+  const [save, setSave] = useState(() => readSave(storyFor));
+  const latestSave = useRef(save);
+  const [sounds, setSounds] = useState(readSound);
+  const [audio] = useState(createAudio);
   const [view, setView] = useState<View>(() => save.run ? 'home' : 'choose');
   const [role, setRole] = useState<Role | null>(() => save.run?.role ?? null);
   const [archived, setArchived] = useState<number | null>(null);
@@ -150,7 +177,7 @@ export default function Communication({ onBack }: { onBack: () => void }) {
   const panel = useRef<HTMLElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const run = save.run;
-  const story = run ? stories[run.role] : undefined;
+  const story = run ? storyFor(run) : undefined;
   const state = useMemo(() => story && run ? replay(story, run) : null, [story, run]);
   const completed = run && state ? run.openedChapter + Number(state.gate) : 0;
   const chapter = archived ?? run?.openedChapter ?? 0;
@@ -162,8 +189,20 @@ export default function Communication({ onBack }: { onBack: () => void }) {
     heading.current?.focus({ preventScroll: true });
   }, [currentView, archived, ending]);
 
+  useEffect(() => () => audio.close(), [audio]);
+
   function update(next: Saved) {
-    setSave(writeSave(next, next.run ? stories[next.run.role] : undefined));
+    latestSave.current = writeSave(next, next.run ? storyFor(next.run) : undefined);
+    setSave(latestSave.current);
+  }
+
+  function receive(index: number, at: number) {
+    const before = latestSave.current;
+    if (!before.run || !story) return;
+    const next = recordDelivery(before.run, index, at);
+    if (next === before.run) return;
+    latestSave.current = writeSave({ ...before, run: next }, story, state ?? undefined);
+    if (sounds) audio.play('receive');
   }
 
   function start() {
@@ -174,9 +213,13 @@ export default function Communication({ onBack }: { onBack: () => void }) {
   }
 
   function send(index: number) {
-    if (!story || !run) return;
-    const next = takeChoice(story, run, index);
-    if (next !== run) update({ ...save, run: next });
+    const before = latestSave.current;
+    if (!story || !before.run || before.run.delivered !== state?.history.length) return;
+    const next = takeChoice(story, before.run, index);
+    if (next !== before.run) {
+      if (sounds) audio.play('send');
+      update({ ...before, run: next });
+    }
     setConfirm(null);
   }
 
@@ -194,7 +237,8 @@ export default function Communication({ onBack }: { onBack: () => void }) {
         }],
       });
     } else if (state.next) {
-      update({ ...save, run: { ...run, openedChapter: state.next.chapter } });
+      update({ ...save, run: { ...run, openedChapter: state.next.chapter,
+        chapterTimes: { ...run.chapterTimes, [state.next.chapter]: Date.now() } } });
       setView('chat');
     }
   }
@@ -206,7 +250,25 @@ export default function Communication({ onBack }: { onBack: () => void }) {
 
   return (
     <section className="subscreen communication" data-theme="blue" data-view={currentView}
-      aria-label="Искусство общения" ref={panel}>
+      aria-label="Искусство общения" ref={panel} onClickCapture={(event) => {
+        if (!sounds || !(event.target instanceof Element)) return;
+        if (!event.target.closest('button, label, summary')) return;
+        audio.unlock();
+        if (!event.target.closest('.communication-reply, [data-sound-toggle], [data-chapter-review]')) audio.play('tap');
+      }}>
+      <div className="communication-tools">
+        <span>Вымышленная история</span>
+        <button type="button" className="communication-audio" data-sound-toggle aria-pressed={sounds}
+          aria-label="Звук" onClick={() => {
+            if (sounds) audio.stop();
+            else {
+              audio.unlock();
+              audio.play('tap');
+            }
+            writeSound(!sounds);
+            setSounds(!sounds);
+          }}><Icon name={sounds ? 'soundOn' : 'soundOff'} /></button>
+      </div>
       {currentView !== 'chat' && <h1 ref={heading} tabIndex={-1}>{title}</h1>}
 
       {(currentView === 'home' || currentView === 'choose') && (
@@ -248,10 +310,18 @@ export default function Communication({ onBack }: { onBack: () => void }) {
 
       {currentView === 'chat' && state && run && story && (
         <>
-          <p className="communication-fiction">Вымышленная переписка · заранее написанный сюжет</p>
           <Chat key={`${run.started}-${run.openedChapter}-${run.decisions.length}`} story={story} run={run} state={state}
-            onChoice={(choice) => state.next?.choices[choice].warning ? setConfirm(choice) : send(choice)}
-            onReview={() => setView('review')} />
+            onChoice={(choice) => {
+              if (state.next?.choices[choice].warning) {
+                if (sounds) audio.play('tap');
+                setConfirm(choice);
+              } else send(choice);
+            }}
+            onDelivery={receive} onReview={() => {
+              if (sounds) audio.play('chapter');
+              setSave(latestSave.current);
+              setView('review');
+            }} />
         </>
       )}
 
