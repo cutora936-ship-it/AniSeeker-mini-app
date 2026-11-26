@@ -14,7 +14,7 @@ export interface Portrait {
   large?: string;
 }
 
-export type Activity = 'strategy' | 'match' | 'mastermind' | 'body-language';
+export type Activity = 'strategy' | 'match' | 'mastermind' | 'body-language' | 'communication';
 
 export interface Character {
   id: string;
@@ -29,6 +29,7 @@ export interface Character {
   observation?: boolean;
   mastermind?: boolean;
   bodyLanguage?: boolean;
+  communication?: boolean;
 }
 
 export const characters: readonly Character[] = [
@@ -84,6 +85,7 @@ export const characters: readonly Character[] = [
     description: 'Психология влюблённости и искусство общения.',
     portrait: { thumbnail: sakutaPortrait, medium: sakutaPortrait },
     theme: 'blue',
+    communication: true,
     about: [
       'Сакута Адзусагава — главный герой аниме «Этот глупый свин не понимает мечту девочки-зайки». Он отличается прямолинейностью, чувством юмора, уверенностью в общении и способностью понимать чувства окружающих.',
       'Его умение открыто выражать свои мысли, внимательно относиться к собеседнику и сохранять естественность помогает ему выстраивать доверительные отношения.',
