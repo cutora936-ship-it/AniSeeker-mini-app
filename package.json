@@ -13,7 +13,8 @@
     "preview": "vite preview",
     "test:strategy": "node --experimental-strip-types --test scripts/strategy.test.mjs",
     "test:match": "node --experimental-strip-types --test scripts/match.test.mjs",
-    "test:mastermind": "node --experimental-strip-types --test scripts/mastermind.test.mjs"
+    "test:mastermind": "node --experimental-strip-types --test scripts/mastermind.test.mjs",
+    "test:communication": "node --test scripts/communication.test.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",

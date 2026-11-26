@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 const paths = {
+  chat: <><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 3v-3a2 2 0 0 1-1-2V6a2 2 0 0 1 2-2Z" /><path d="M8 9h8m-8 4h5" /></>,
   search: <><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 4.5 4.5" /></>,
   home: <><path d="m3 10 8-7a1.5 1.5 0 0 1 2 0l8 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z" /><path d="M9 21v-6a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v6" /></>,
   bookmark: <path d="M6 3h12a1.5 1.5 0 0 1 1.5 1.5V21l-7.5-5.2L4.5 21V4.5A1.5 1.5 0 0 1 6 3Z" />,
