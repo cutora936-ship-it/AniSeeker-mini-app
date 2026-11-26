@@ -644,6 +644,36 @@ svg { display: block; width: 1.5rem; height: 1.5rem; flex: none; }
   color: #f4dfc0;
 }
 
+[data-theme="blue"] {
+  --accent: #83b8f5;
+  --accent-hover: #a6cefa;
+  --accent-surface: #152337;
+  --on-accent: #101925;
+  --blue-button: #244875;
+  --blue-button-hover: #305b8e;
+  --rim: #365574;
+  --rim-strong: #517aa7;
+  --muted: #bac9dd;
+}
+
+[data-theme="blue"] :is(.favorite-button, .topbar__action, .dossier-label) {
+  color: var(--accent);
+  background: var(--accent-surface);
+}
+
+[data-theme="blue"] .study-button {
+  border-color: var(--rim-strong);
+  color: #fff;
+  background: var(--blue-button);
+}
+
+[data-theme="blue"] .study-button svg,
+.detail[data-theme="blue"] :is(.detail__about, .detail__materials) h2 {
+  color: var(--accent);
+}
+
+[data-theme="blue"] .study-button:focus-visible { outline-color: var(--accent); }
+
 @media (prefers-reduced-motion: no-preference) {
   .detail--with-about { scroll-behavior: smooth; }
 }
@@ -657,6 +687,7 @@ svg { display: block; width: 1.5rem; height: 1.5rem; flex: none; }
   .icon-button:hover { border-color: var(--accent); }
   .detail__strategy:hover { border-color: var(--accent); }
   .study-button:hover { background: var(--accent-hover); }
+  [data-theme="blue"] .study-button:hover { background: var(--blue-button-hover); }
   .navigation__item:not([aria-current]):hover { background-color: var(--panel); }
   .swipe-hint:hover, .character-row__open:hover { color: white; }
 }
