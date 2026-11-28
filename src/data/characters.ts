@@ -14,7 +14,7 @@ export interface Portrait {
   large?: string;
 }
 
-export type Activity = 'strategy' | 'match' | 'mastermind' | 'body-language' | 'communication';
+export type Activity = 'strategy' | 'match' | 'mastermind' | 'body-language' | 'communication' | 'stroop';
 
 export interface Character {
   id: string;
@@ -29,6 +29,7 @@ export interface Character {
   observation?: boolean;
   mastermind?: boolean;
   bodyLanguage?: boolean;
+  stroop?: boolean;
   communication?: boolean;
 }
 
@@ -72,6 +73,7 @@ export const characters: readonly Character[] = [
     portrait: { thumbnail: johanThumb, medium: johanPortrait },
     theme: 'gold',
     bodyLanguage: true,
+    stroop: true,
     about: [
       'Йохан Либерт — один из центральных персонажей аниме и манги Monster. Он отличается спокойствием, красноречием и глубоким пониманием человеческой психологии.',
       'В этом разделе ты познакомишься с особенностями человеческого поведения, невербальной коммуникацией, психологическими механизмами и способами распознавания манипуляций.',
