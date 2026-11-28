@@ -1,17 +1,29 @@
 import { useAccount } from '../account/current';
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { bodyLanguageQuestions } from '../data/bodyLanguageQuestions';
 import { createRound, readResults, saveAttempt } from '../body-language/session';
+import { useSavedTraining, useTrainingCheckpoint } from '../training/useCheckpoint';
 import './BodyLanguage.css';
 
 type Round = ReturnType<typeof createRound>;
+type Save = { questions: { id: string; answerOrder: number[] }[]; answers: number[]; index: number };
+
+function restoreRound(saved?: Save): Round {
+  if (!saved) return [];
+  const questions = new Map(bodyLanguageQuestions.map((question) => [question.id, question]));
+  return saved.questions.flatMap(({ id, answerOrder }) => {
+    const question = questions.get(id);
+    return question ? [{ question, answerOrder }] : [];
+  });
+}
 
 export default function BodyLanguage({ onBack }: { onBack: () => void }) {
   const { storage } = useAccount();
-  const [round, setRound] = useState<Round>([]);
-  const [answers, setAnswers] = useState<number[]>([]);
-  const [index, setIndex] = useState(0);
+  const saved = useSavedTraining<Save>('body-language');
+  const [round, setRound] = useState(() => restoreRound(saved));
+  const [answers, setAnswers] = useState<number[]>(() => saved?.answers ?? []);
+  const [index, setIndex] = useState(() => saved?.index ?? 0);
   const [results, setResults] = useState(() => readResults(storage));
   const page = useRef<HTMLElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -20,6 +32,12 @@ export default function BodyLanguage({ onBack }: { onBack: () => void }) {
   const current = round[index];
   const finished = started && !current;
   const selected = answers[index];
+  const checkpoint = useMemo<Save | null>(() => current
+    ? { questions: round.map(({ question, answerOrder }) => ({ id: question.id, answerOrder })), answers, index }
+    : null, [current, round, answers, index]);
+  useTrainingCheckpoint('body-language', checkpoint, {
+    label: `Вопрос ${index + 1} из ${round.length}`, value: answers.length, total: round.length,
+  });
 
   useLayoutEffect(() => {
     page.current?.scrollTo({ top: 0, behavior: 'instant' });
@@ -44,7 +62,7 @@ export default function BodyLanguage({ onBack }: { onBack: () => void }) {
     setAnswers((previous) => previous.length === index ? [...previous, choice] : previous);
   }
 
-  const correct = answers.reduce((total, choice, i) => total + Number(choice === round[i].question.correct), 0);
+  const correct = answers.reduce((total, choice, i) => total + Number(choice === round[i]?.question.correct), 0);
 
   function next() {
     if (selected === undefined) return;

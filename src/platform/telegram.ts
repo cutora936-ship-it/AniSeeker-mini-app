@@ -7,13 +7,14 @@ export interface TelegramUser {
   username?: string;
 }
 
-type TelegramEvent = 'safeAreaChanged' | 'contentSafeAreaChanged' | 'activated';
+type TelegramEvent = 'safeAreaChanged' | 'contentSafeAreaChanged' | 'activated' | 'deactivated';
 
 type Insets = Readonly<Record<'top' | 'right' | 'bottom' | 'left', number>>;
 
 interface TelegramWebApp {
   platform: string;
   initData: string;
+  isActive?: boolean;
   initDataUnsafe: { user?: TelegramUser };
   safeAreaInset?: Insets;
   contentSafeAreaInset?: Insets;

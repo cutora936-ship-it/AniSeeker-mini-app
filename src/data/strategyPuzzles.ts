@@ -1,4 +1,6 @@
-export const strategyLevels = ['Новичок', 'Аналитик', 'Тактик', 'Стратег', 'Эксперт'] as const;
+import { strategyLevels } from '../strategy/catalog.ts';
+
+export { strategyLevels };
 export type StrategyLevel = typeof strategyLevels[number];
 
 export type StrategyGoal =

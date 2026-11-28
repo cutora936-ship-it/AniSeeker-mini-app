@@ -25,6 +25,7 @@ export function App() {
   const [query, setQuery] = useState('');
   const [detail, setDetail] = useState<Character | null>(null);
   const [activity, setActivity] = useState<Activity | null>(null);
+  const [resuming, setResuming] = useState(false);
   const [matchPlaying, setMatchPlaying] = useState(false);
   const [profileEditor, setProfileEditor] = useState<ProfileEditorState>('closed');
   const { favoriteIds, toggleFavorite } = useFavorites();
@@ -42,6 +43,8 @@ export function App() {
     }
     if (activity) {
       setActivity(null);
+      if (resuming) setDetail(null);
+      setResuming(false);
       setMatchPlaying(false);
       return;
     }
@@ -52,7 +55,13 @@ export function App() {
       setSearchOpen(false);
       setQuery('');
     }
-  }, [detail, activity, profileEditor]);
+  }, [detail, activity, profileEditor, resuming]);
+
+  const returnToDossier = useCallback(() => {
+    setActivity(null);
+    setMatchPlaying(false);
+    setResuming(false);
+  }, []);
 
   const overlayOpen = Boolean(detail || searchOpen || profileEditor !== 'closed');
   useTelegram(overlayOpen ? goBack : undefined);
@@ -83,6 +92,7 @@ export function App() {
     setTab(next);
     setDetail(null);
     setActivity(null);
+    setResuming(false);
     setMatchPlaying(false);
     setProfileEditor('closed');
     setSearchOpen(false);
@@ -134,18 +144,19 @@ export function App() {
       <main className="main" ref={main}>
         {detail ? (
           <>
-            <CharacterDetail character={detail} hidden={activity !== null}
-              onOpenActivity={setActivity} />
+            {!resuming && (
+              <CharacterDetail character={detail} hidden={activity !== null} onOpenActivity={setActivity} />
+            )}
             {activity && (
               <Suspense fallback={<p className="subscreen screen-loading" role="status">Загрузка тренажёра…</p>}>
-                {activity === 'strategy' && <Strategy onBack={goBack} />}
+                {activity === 'strategy' && <Strategy onBack={returnToDossier} />}
                 {activity === 'match' && (
-                  <MatchGame onBack={goBack} onPlayingChange={setMatchPlaying} />
+                  <MatchGame onBack={returnToDossier} onPlayingChange={setMatchPlaying} />
                 )}
-                {activity === 'mastermind' && <Mastermind onBack={goBack} />}
-                {activity === 'body-language' && <BodyLanguage onBack={goBack} />}
-                {activity === 'stroop' && <Stroop onBack={goBack} />}
-                {activity === 'communication' && <Communication onBack={goBack} />}
+                {activity === 'mastermind' && <Mastermind onBack={returnToDossier} />}
+                {activity === 'body-language' && <BodyLanguage onBack={returnToDossier} />}
+                {activity === 'stroop' && <Stroop onBack={returnToDossier} />}
+                {activity === 'communication' && <Communication onBack={returnToDossier} resume={resuming} />}
               </Suspense>
             )}
           </>
@@ -172,7 +183,11 @@ export function App() {
             )}
           </section>
         ) : tab === 'profile' ? (
-          <Profile editor={profileEditor} onEditorChange={setProfileEditor} />
+          <Profile editor={profileEditor} onEditorChange={setProfileEditor} onResume={(character, training) => {
+            setResuming(true);
+            setDetail(character);
+            setActivity(training);
+          }} />
         ) : (
           <Feed characters={characters} initialIndex={feedIndex.current} onIndexChange={rememberFeedIndex}
             {...listProps} />

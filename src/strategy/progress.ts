@@ -2,7 +2,9 @@ import type { UserStorage } from '../account/storage';
 import { Chess, type Move, type Square } from 'chess.js';
 import { strategyPuzzles, type StrategyPuzzle } from '../data/strategyPuzzles';
 
-export const strategyStorageKey = 'aniseeker:strategy:v1';
+import { strategyStorageKey } from './catalog';
+
+export { strategyStorageKey };
 
 export interface StrategyProgress {
   puzzleId: string;

@@ -8,7 +8,7 @@ export interface Saved {
   endings: { role: Role; ending: Ending; decisions: number; completedAt: number }[];
 }
 
-const storageKey = 'aniseeker:communication:v1';
+export const communicationStorageKey = 'aniseeker:communication:v1';
 
 function validDate(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 && value <= 8.64e15;
@@ -17,7 +17,7 @@ function validDate(value: unknown): value is number {
 export function readSave(storage: UserStorage, storyFor: (run: Run) => Story): Saved {
   const empty: Saved = { run: null, endings: [] };
   try {
-    const saved = JSON.parse(storage.getItem(storageKey) ?? 'null');
+    const saved = JSON.parse(storage.getItem(communicationStorageKey) ?? 'null');
     const endings: Saved['endings'] = Array.isArray(saved?.endings) ? saved.endings.filter((entry: Saved['endings'][number]) =>
       (entry?.role === 'male' || entry?.role === 'female') && typeof entry.ending === 'string'
       && ['understanding', 'friendship', 'acquaintance', 'repair', 'parting'].includes(entry.ending)
@@ -58,7 +58,7 @@ export function writeSave(storage: UserStorage, save: Saved, story?: Story, cach
   try {
     const state = cached ?? (save.run && story ? replay(story, save.run) : null);
     // Decisions and timestamps are the canonical replay log. The checkpoint is useful for inspecting saves.
-    storage.setItem(storageKey, JSON.stringify({
+    storage.setItem(communicationStorageKey, JSON.stringify({
       ...save,
       checkpoint: state && {
         chapter: save.run?.openedChapter, node: state.next?.id, memory: state.memory,

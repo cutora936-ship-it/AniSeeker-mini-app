@@ -16,7 +16,8 @@
     "test:mastermind": "node --experimental-strip-types --test scripts/mastermind.test.mjs",
     "test:communication": "node --test scripts/communication.test.mjs",
     "test:stroop": "node --experimental-strip-types --test scripts/stroop.test.mjs",
-    "test:account": "node --experimental-strip-types --test scripts/account.test.mjs"
+    "test:account": "node --experimental-strip-types --test scripts/account.test.mjs",
+    "test:training": "node --test scripts/training.test.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",
