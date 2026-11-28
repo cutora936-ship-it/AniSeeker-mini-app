@@ -1,3 +1,4 @@
+import type { UserStorage } from '../account/storage';
 import { replay } from './engine';
 import type { Run } from './engine';
 import type { Ending, Role, Story } from './types';
@@ -13,10 +14,10 @@ function validDate(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 && value <= 8.64e15;
 }
 
-export function readSave(storyFor: (run: Run) => Story): Saved {
+export function readSave(storage: UserStorage, storyFor: (run: Run) => Story): Saved {
   const empty: Saved = { run: null, endings: [] };
   try {
-    const saved = JSON.parse(localStorage.getItem(storageKey) ?? 'null');
+    const saved = JSON.parse(storage.getItem(storageKey) ?? 'null');
     const endings: Saved['endings'] = Array.isArray(saved?.endings) ? saved.endings.filter((entry: Saved['endings'][number]) =>
       (entry?.role === 'male' || entry?.role === 'female') && typeof entry.ending === 'string'
       && ['understanding', 'friendship', 'acquaintance', 'repair', 'parting'].includes(entry.ending)
@@ -53,11 +54,11 @@ export function readSave(storyFor: (run: Run) => Story): Saved {
   }
 }
 
-export function writeSave(save: Saved, story?: Story, cached?: ReturnType<typeof replay>) {
+export function writeSave(storage: UserStorage, save: Saved, story?: Story, cached?: ReturnType<typeof replay>) {
   try {
     const state = cached ?? (save.run && story ? replay(story, save.run) : null);
     // Decisions and timestamps are the canonical replay log. The checkpoint is useful for inspecting saves.
-    localStorage.setItem(storageKey, JSON.stringify({
+    storage.setItem(storageKey, JSON.stringify({
       ...save,
       checkpoint: state && {
         chapter: save.run?.openedChapter, node: state.next?.id, memory: state.memory,

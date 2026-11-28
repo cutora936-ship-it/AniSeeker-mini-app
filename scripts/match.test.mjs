@@ -46,22 +46,22 @@ test('records prioritize fewer errors and then a faster time, and survive readin
       setItem: (key, value) => memory.set(key, value),
     },
   });
-  const initial = readRecords();
+  const initial = readRecords(globalThis.localStorage);
   assert.deepEqual(initial, { best: null, latest: null });
 
   const result = { hits: roundsPerGame, errors: 2, duration: 8_200 };
-  assert.equal(saveResult(result, initial).newRecord, true);
+  assert.equal(saveResult(globalThis.localStorage, result, initial).newRecord, true);
   assert.equal(isRecord({ ...result, errors: 1, duration: 20_000 }, result), true);
   assert.equal(isRecord({ ...result, errors: 3, duration: 6_000 }, result), false);
   assert.equal(isRecord({ ...result, duration: 7_000 }, result), true);
   assert.equal(isRecord(result, result), false);
 
   const latest = { ...result, errors: 3 };
-  assert.equal(saveResult(latest, readRecords()).newRecord, false);
-  assert.deepEqual(readRecords(), { best: result, latest });
+  assert.equal(saveResult(globalThis.localStorage, latest, readRecords(globalThis.localStorage)).newRecord, false);
+  assert.deepEqual(readRecords(globalThis.localStorage), { best: result, latest });
   assert.equal(displayTime(68_240), '01:08.2');
 
   for (const key of memory.keys()) memory.set(key, '{invalid json');
-  assert.deepEqual(readRecords(), initial);
+  assert.deepEqual(readRecords(globalThis.localStorage), initial);
   delete globalThis.localStorage;
 });

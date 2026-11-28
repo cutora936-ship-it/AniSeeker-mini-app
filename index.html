@@ -6,7 +6,8 @@
     <meta name="theme-color" content="#101010" />
     <meta name="description" content="AniSeeker — досье на персонажей аниме в Telegram." />
     <title>AniSeeker</title>
-    <script id="telegram-sdk" async src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script id="telegram-sdk" async data-state="pending"
+      onload="this.dataset.state='ready'" onerror="this.dataset.state='failed'" src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
   <body>
     <div id="root"></div>

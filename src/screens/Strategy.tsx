@@ -1,3 +1,4 @@
+import { useAccount } from '../account/current';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Chess, Move, Square } from 'chess.js';
 import { Icon } from '../components/Icon';
@@ -59,7 +60,8 @@ function failureMessage(puzzle: StrategyPuzzle, game: Chess, move: Move | undefi
 }
 
 export default function Strategy({ onBack }: { onBack: () => void }) {
-  const [progress, setProgress] = useState(readStrategyProgress);
+  const { storage } = useAccount();
+  const [progress, setProgress] = useState(() => readStrategyProgress(storage));
   const [selected, setSelected] = useState<Square | null>(null);
   const [promotion, setPromotion] = useState<readonly Move[]>([]);
   const [hintOpen, setHintOpen] = useState(false);
@@ -88,11 +90,11 @@ export default function Strategy({ onBack }: { onBack: () => void }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(strategyStorageKey, JSON.stringify(progress));
+      storage.setItem(strategyStorageKey, JSON.stringify(progress));
     } catch {
       // Training stays available when local storage is blocked.
     }
-  }, [progress]);
+  }, [progress, storage]);
 
   useEffect(() => {
     if (!reply) return;

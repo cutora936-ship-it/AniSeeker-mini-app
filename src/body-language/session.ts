@@ -1,3 +1,4 @@
+import type { UserStorage } from '../account/storage';
 import type { BodyLanguageQuestion } from '../data/bodyLanguageQuestions';
 
 const storageKey = 'aniseeker:body-language:v1';
@@ -39,22 +40,22 @@ function parseAttempt(value: unknown): Attempt | null {
     && correct >= 0 && correct <= total ? { correct, total } : null;
 }
 
-export function readResults(): Results {
+export function readResults(storage: UserStorage): Results {
   try {
-    const saved = JSON.parse(localStorage.getItem(storageKey) ?? 'null');
+    const saved = JSON.parse(storage.getItem(storageKey) ?? 'null');
     return { latest: parseAttempt(saved?.latest), best: parseAttempt(saved?.best) };
   } catch {
     return { latest: null, best: null };
   }
 }
 
-export function saveAttempt(attempt: Attempt, results: Results): Results {
+export function saveAttempt(storage: UserStorage, attempt: Attempt, results: Results): Results {
   const best = results.best;
   // Compare accuracy even if the question bank grows between releases.
   const isBest = !best || attempt.correct * best.total > best.correct * attempt.total;
   const next = { latest: attempt, best: isBest ? attempt : best };
   try {
-    localStorage.setItem(storageKey, JSON.stringify(next));
+    storage.setItem(storageKey, JSON.stringify(next));
   } catch {
     // The current result stays visible when browser storage is unavailable.
   }

@@ -1,3 +1,4 @@
+import type { UserStorage } from '../account/storage';
 export const colors = [
   { name: 'Красный', ink: '#FF5268' },
   { name: 'Синий', ink: '#4F9DFF' },
@@ -73,9 +74,9 @@ export function recordKey(level: LevelId, timed: boolean): RecordKey {
   return `${level}:${timed ? 'timed' : 'untimed'}`;
 }
 
-export function readRecords(): Records {
+export function readRecords(storage: UserStorage): Records {
   try {
-    const data = JSON.parse(localStorage.getItem('aniseeker:stroop:records:v1') ?? 'null');
+    const data = JSON.parse(storage.getItem('aniseeker:stroop:records:v1') ?? 'null');
     const records: Records = {};
     for (const id of Object.keys(levels) as LevelId[]) {
       for (const timed of [false, true]) {
@@ -93,11 +94,11 @@ export function readRecords(): Records {
   }
 }
 
-export function saveRecord(records: Records, key: RecordKey, score: RecordScore): Records {
+export function saveRecord(storage: UserStorage, records: Records, key: RecordKey, score: RecordScore): Records {
   const best = records[key];
   if (best && (best.correct > score.correct || (best.correct === score.correct
     && (best.average ?? Infinity) <= (score.average ?? Infinity)))) return records;
   const next = { ...records, [key]: { correct: score.correct, average: score.average } };
-  try { localStorage.setItem('aniseeker:stroop:records:v1', JSON.stringify(next)); } catch { /* Storage may be blocked. */ }
+  try { storage.setItem('aniseeker:stroop:records:v1', JSON.stringify(next)); } catch { /* Storage may be blocked. */ }
   return next;
 }

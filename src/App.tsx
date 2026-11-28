@@ -55,7 +55,7 @@ export function App() {
   }, [detail, activity, profileEditor]);
 
   const overlayOpen = Boolean(detail || searchOpen || profileEditor !== 'closed');
-  const user = useTelegram(overlayOpen ? goBack : undefined);
+  useTelegram(overlayOpen ? goBack : undefined);
 
   useLayoutEffect(() => {
     if (searchShown) {
@@ -172,7 +172,7 @@ export function App() {
             )}
           </section>
         ) : tab === 'profile' ? (
-          <Profile user={user} editor={profileEditor} onEditorChange={setProfileEditor} />
+          <Profile editor={profileEditor} onEditorChange={setProfileEditor} />
         ) : (
           <Feed characters={characters} initialIndex={feedIndex.current} onIndexChange={rememberFeedIndex}
             {...listProps} />

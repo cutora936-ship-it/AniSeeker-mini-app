@@ -1,3 +1,4 @@
+import type { UserStorage } from '../account/storage';
 import receive from '../assets/communication/sounds/receive.wav?no-inline';
 import send from '../assets/communication/sounds/send.wav?no-inline';
 import tap from '../assets/communication/sounds/tap.wav?no-inline';
@@ -7,12 +8,12 @@ const urls = { receive, send, tap, chapter };
 export type Sound = keyof typeof urls;
 const preference = 'aniseeker:communication:sound';
 
-export function readSound() {
-  try { return localStorage.getItem(preference) !== 'off'; } catch { return true; }
+export function readSound(storage: UserStorage) {
+  try { return storage.getItem(preference) !== 'off'; } catch { return true; }
 }
 
-export function writeSound(enabled: boolean) {
-  try { localStorage.setItem(preference, enabled ? 'on' : 'off'); } catch { /* Browser storage may be blocked. */ }
+export function writeSound(storage: UserStorage, enabled: boolean) {
+  try { storage.setItem(preference, enabled ? 'on' : 'off'); } catch { /* Browser storage may be blocked. */ }
 }
 
 export function createAudio() {

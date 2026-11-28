@@ -1,3 +1,4 @@
+import { useAccount } from '../account/current';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { bodyLanguageQuestions } from '../data/bodyLanguageQuestions';
@@ -7,10 +8,11 @@ import './BodyLanguage.css';
 type Round = ReturnType<typeof createRound>;
 
 export default function BodyLanguage({ onBack }: { onBack: () => void }) {
+  const { storage } = useAccount();
   const [round, setRound] = useState<Round>([]);
   const [answers, setAnswers] = useState<number[]>([]);
   const [index, setIndex] = useState(0);
-  const [results, setResults] = useState(readResults);
+  const [results, setResults] = useState(() => readResults(storage));
   const page = useRef<HTMLElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const feedback = useRef<HTMLDivElement>(null);
@@ -47,7 +49,7 @@ export default function BodyLanguage({ onBack }: { onBack: () => void }) {
   function next() {
     if (selected === undefined) return;
     if (index + 1 === round.length) {
-      setResults(saveAttempt({ correct, total: round.length }, results));
+      setResults(saveAttempt(storage, { correct, total: round.length }, results));
     }
     setIndex(index + 1);
   }

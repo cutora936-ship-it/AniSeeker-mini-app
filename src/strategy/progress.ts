@@ -1,3 +1,4 @@
+import type { UserStorage } from '../account/storage';
 import { Chess, type Move, type Square } from 'chess.js';
 import { strategyPuzzles, type StrategyPuzzle } from '../data/strategyPuzzles';
 
@@ -69,9 +70,9 @@ export function decodeProgress(raw: string | null): StrategyProgress {
   return restored;
 }
 
-export function readStrategyProgress(): StrategyProgress {
+export function readStrategyProgress(storage: UserStorage): StrategyProgress {
   try {
-    return decodeProgress(localStorage.getItem(strategyStorageKey));
+    return decodeProgress(storage.getItem(strategyStorageKey));
   } catch {
     return decodeProgress(null);
   }

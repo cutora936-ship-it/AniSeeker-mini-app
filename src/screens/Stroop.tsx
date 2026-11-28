@@ -1,3 +1,4 @@
+import { useAccount } from '../account/current';
 import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { Icon } from '../components/Icon';
 import {
@@ -174,13 +175,14 @@ function Best({ record, level }: { record?: RecordScore; level: Level }) {
 }
 
 export default function Stroop({ onBack }: { onBack: () => void }) {
+  const { storage } = useAccount();
   const [view, setView] = useState<View>('intro');
   const [levelId, setLevel] = useState<LevelId>('beginner');
   const [untimed, setUntimed] = useState(false);
   const [prompts, setPrompts] = useState<readonly Prompt[]>([]);
-  const [records, setRecords] = useState(readRecords);
+  const [records, setRecords] = useState(() => readRecords(storage));
   const [result, setResult] = useState<Summary | null>(null);
-  const [enabled, setEnabled] = useState(readSound);
+  const [enabled, setEnabled] = useState(() => readSound(storage));
   const [audio] = useState(createSound);
   const screen = useRef<HTMLElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
@@ -209,7 +211,7 @@ export default function Stroop({ onBack }: { onBack: () => void }) {
   }
 
   function finish(summary: Summary) {
-    setRecords(saveRecord(records, key, summary));
+    setRecords(saveRecord(storage, records, key, summary));
     setResult(summary);
     setView('results');
     sound('finish');
@@ -227,7 +229,7 @@ export default function Stroop({ onBack }: { onBack: () => void }) {
             audio.play('tap');
           }
           setEnabled(!enabled);
-          storeSound(!enabled);
+          storeSound(storage, !enabled);
         }}><Icon name={enabled ? 'soundOn' : 'soundOff'} /></button>
       </div>
 

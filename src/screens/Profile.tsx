@@ -1,32 +1,36 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { Icon } from '../components/Icon';
-import type { TelegramUser } from '../platform/telegram';
+import { useAccount } from '../account/current';
+import { telegramScope } from '../account/storage';
+import { getTelegram } from '../platform/telegram';
 import { ProfileAvatar } from '../profile/ProfileAvatar';
 import { ProfileEditor, type AvatarChange, type ProfileEditorState } from '../profile/ProfileEditor';
 import { readAvatar, readProfile, saveProfile } from '../profile/storage';
 import './Profile.css';
 
-export function Profile({ user, editor, onEditorChange }: {
-  user?: TelegramUser;
+export function Profile({ editor, onEditorChange }: {
   editor: ProfileEditorState;
   onEditorChange: (editor: ProfileEditorState) => void;
 }) {
-  const [preferences, setPreferences] = useState(readProfile);
+  const { scope, storage } = useAccount();
+  const [preferences, setPreferences] = useState(() => readProfile(storage));
+  const user = scope === 'guest' ? undefined : getTelegram()?.initDataUnsafe.user;
+  const username = telegramScope(user?.id) === scope ? user?.username : undefined;
   const [loaded, setLoaded] = useState<{ id: string; image: Blob | null } | null>(null);
   const editorTrigger = useRef<HTMLButtonElement>(null);
   const avatarId = preferences.avatarId;
   const image = loaded?.id === avatarId ? loaded.image : null;
-  const name = preferences.nickname || [user?.first_name, user?.last_name].filter(Boolean).join(' ') || 'Гость';
+  const name = preferences.nickname || 'Гость';
 
   useEffect(() => {
     if (!avatarId || loaded?.id === avatarId) return;
     let active = true;
-    readAvatar(avatarId).then(
+    readAvatar(scope, avatarId).then(
       (blob) => { if (active) setLoaded({ id: avatarId, image: blob }); },
       () => { if (active) setLoaded({ id: avatarId, image: null }); },
     );
     return () => { active = false; };
-  }, [avatarId, loaded?.id]);
+  }, [scope, avatarId, loaded?.id]);
 
   useEffect(() => {
     if (editor === 'closed') editorTrigger.current?.focus({ preventScroll: true });
@@ -40,7 +44,7 @@ export function Profile({ user, editor, onEditorChange }: {
   async function save(nickname: string, avatar: AvatarChange) {
     onEditorChange('saving');
     try {
-      const next = await saveProfile(nickname, avatar);
+      const next = await saveProfile(scope, storage, nickname, avatar);
       if (avatar && next.avatarId) setLoaded({ id: next.avatarId, image: avatar });
       else if (avatar === null) setLoaded(null);
       setPreferences(next);
@@ -62,7 +66,7 @@ export function Profile({ user, editor, onEditorChange }: {
         </div>
         <div className="profile__identity">
           <h2>{name}</h2>
-          <p>{user ? (user.username ? `@${user.username}` : 'Telegram') : 'Браузерный режим'}</p>
+          <p>{scope === 'guest' ? 'Браузерный режим' : username ? `@${username}` : 'Telegram'}</p>
         </div>
         <button type="button" className="profile__edit profile-action surface"
           onClick={openEditor}><Icon name="edit" />Редактировать профиль</button>
