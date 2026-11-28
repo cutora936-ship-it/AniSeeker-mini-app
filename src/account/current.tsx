@@ -1,8 +1,19 @@
-import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from 'react';
 import { getTelegram } from '../platform/telegram';
+import { readAvatar } from '../profile/storage';
+import { cloudEnabled, createCloudAccount, type CloudAccount } from './sync';
 import { createUserStorage, telegramScope, type UserScope, type UserStorage } from './storage';
 
-const context = createContext<{ scope: UserScope; storage: UserStorage } | null>(null);
+type Account = {
+  scope: UserScope;
+  storage: UserStorage;
+  loadAvatar: (id: string) => Promise<Blob | null>;
+  cloud?: CloudAccount;
+  authorized?: boolean;
+  canImport?: boolean;
+};
+
+const context = createContext<Account | null>(null);
 const events = ['focus', 'pageshow', 'hashchange'] as const;
 
 function getScope(): UserScope | 'loading' | 'unavailable' {
@@ -52,15 +63,38 @@ function subscribe(notify: () => void) {
   };
 }
 
+function getLaunchData() {
+  return getTelegram()?.initData ?? '';
+}
+
+function CloudProvider({ scope, initData, children }: {
+  scope: Exclude<UserScope, 'guest'>;
+  initData: string;
+  children: ReactNode;
+}) {
+  const cloud = useMemo(() => createCloudAccount(scope, initData), [scope, initData]);
+  const { ready, authorized, canImport, rejected } = useSyncExternalStore(cloud.subscribe, cloud.snapshot);
+  useEffect(() => cloud.start(), [cloud]);
+
+  if (!ready) return <div className="app"><p className="subscreen screen-loading" role="status">Загрузка AniSeeker…</p></div>;
+  const account = { scope, cloud, storage: cloud.storage, loadAvatar: cloud.loadAvatar, authorized, canImport };
+  return <context.Provider key={rejected ? 'local-session' : scope} value={account}>{children}</context.Provider>;
+}
+
 export function AccountProvider({ children }: { children: ReactNode }) {
   const scope = useSyncExternalStore(subscribe, getScope);
+  const initData = useSyncExternalStore(subscribe, getLaunchData);
   const account = useMemo(() => scope === 'loading' || scope === 'unavailable' ? null
-    : { scope, storage: createUserStorage(scope) }, [scope]);
+    : { scope, storage: createUserStorage(scope), loadAvatar: (id: string) => readAvatar(scope, id) }, [scope]);
 
   if (!account) {
     return <div className="app"><p className="subscreen screen-loading" role="status">
       {scope === 'loading' ? 'Загрузка AniSeeker…' : 'Не удалось определить аккаунт. Открой AniSeeker заново из Telegram.'}
     </p></div>;
+  }
+
+  if (cloudEnabled && account.scope !== 'guest') {
+    return <CloudProvider key={account.scope} scope={account.scope} initData={initData}>{children}</CloudProvider>;
   }
 
   // Remount the entire app at an identity change, including open editors and games.

@@ -63,11 +63,16 @@ export async function readAvatar(scope: UserScope, id: string) {
   return bytes instanceof ArrayBuffer && typeof type === 'string' ? new Blob([bytes], { type }) : null;
 }
 
+export async function cacheAvatar(scope: UserScope, id: string, blob: Blob) {
+  const image = { bytes: await blob.arrayBuffer(), type: blob.type };
+  await withAvatars('readwrite', (store) => store.put(image, [scope, id]));
+}
+
 function deleteAvatar(scope: UserScope, id: string) {
   return withAvatars('readwrite', (store) => store.delete([scope, id]));
 }
 
-export async function saveProfile(scope: UserScope, storage: UserStorage, nickname: string, avatarChange: Blob | null | undefined) {
+export async function saveProfile(scope: UserScope, storage: UserStorage, nickname: string, avatarChange: Blob | null | undefined, preserveAvatar = false) {
   const name = nickname.trim().normalize('NFC');
   if (validateNickname(name)) throw new Error('Invalid nickname');
 
@@ -92,7 +97,7 @@ export async function saveProfile(scope: UserScope, storage: UserStorage, nickna
     throw error;
   }
 
-  if (previous.avatarId && previous.avatarId !== avatarId) {
+  if (!preserveAvatar && previous.avatarId && previous.avatarId !== avatarId) {
     await deleteAvatar(scope, previous.avatarId).catch(() => {});
   }
   return preferences;

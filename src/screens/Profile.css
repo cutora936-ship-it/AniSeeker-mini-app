@@ -206,3 +206,13 @@
   .profile-photo-remove:hover { background: #35252c; }
   .profile-action--primary:hover { background: var(--accent-hover); }
 }
+
+.profile-import {
+  margin-top: 1rem;
+  padding: .85rem;
+  border-radius: 1rem;
+}
+
+.profile-import h2 { font-size: 1.05rem; }
+.profile-import p { margin: .3rem 0 .65rem; color: var(--muted); font-size: .85rem; }
+.profile-import__actions { display: flex; flex-wrap: wrap; gap: .4rem; }
