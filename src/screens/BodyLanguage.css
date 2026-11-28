@@ -33,19 +33,7 @@
 
 .body-language-panel__title p { font-size: .81rem; }
 
-.body-language-icon {
-  display: grid;
-  width: 2.5rem;
-  aspect-ratio: 1;
-  flex: none;
-  place-items: center;
-  border: 1px solid var(--rim);
-  border-radius: .74rem;
-  background: var(--accent-surface);
-  color: var(--accent);
-}
-
-.body-language-icon svg { width: 1.32rem; height: 1.32rem; }
+.body-language-panel__title .activity-icon { --activity-icon-size: 2.5rem; }
 
 .body-language-rules {
   display: grid;

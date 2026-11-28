@@ -5,13 +5,14 @@ import { Symbol } from '../match/Symbol';
 import { roundsPerGame } from '../match/round';
 import { displayTime, type MatchResult } from '../match/records';
 import { useMatch } from '../match/useMatch';
+import { ActivityIcon } from '../training/ActivityIcon';
 import { useTrainingDisplay } from '../training/time';
 import './MatchGame.css';
 
 function RecordLine({ best }: { best: MatchResult }) {
   return (
     <div className="match-record surface">
-      <Icon name="observation" />
+      <ActivityIcon activity="match" />
       <div><strong>Личный рекорд</strong><p>Ошибок {best.errors} · {displayTime(best.duration)}</p></div>
     </div>
   );
@@ -87,7 +88,7 @@ export default function MatchGame({ onBack, onPlayingChange }: {
       {session.phase === 'results' && (
         <>
           <h1 id="match-title" ref={heading} tabIndex={-1}>Тренировка завершена</h1>
-          {session.newRecord && <p className="match-new-record"><Icon name="observation" /> Новый личный рекорд</p>}
+          {session.newRecord && <p className="match-new-record"><ActivityIcon activity="match" /> Новый личный рекорд</p>}
           <dl className="match-results surface">
             <div><dt>Совпадения</dt><dd>{session.result.hits} / {roundsPerGame}</dd></div>
             <div><dt>Ошибки</dt><dd>{session.result.errors}</dd></div>

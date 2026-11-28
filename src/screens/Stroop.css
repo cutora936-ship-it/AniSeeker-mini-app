@@ -94,7 +94,7 @@
 .stroop-timing { cursor: pointer; }
 .stroop-timing:has(input:disabled) { cursor: default; }
 .stroop-record p { margin-top: .1rem; color: var(--stroop-muted); font-size: .75rem; }
-.stroop-record svg { width: 1.2rem; height: 1.2rem; color: var(--stroop-accent); }
+.stroop-record .activity-icon { --activity-icon-size: 1.2rem; }
 
 .stroop-action {
   display: flex;

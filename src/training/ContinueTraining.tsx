@@ -1,5 +1,6 @@
 import type { UserStorage } from '../account/storage';
 import { Icon } from '../components/Icon';
+import { ActivityIcon } from './ActivityIcon';
 import { characters, type Activity, type Character } from '../data/characters';
 import { activityCards } from './activities';
 import { latestTraining } from './storage';
@@ -19,7 +20,7 @@ export function ContinueTraining({ storage, onResume }: {
       <h2 id="continue-training-title">Продолжить тренировку</h2>
       <div className="continue-training__card surface" data-theme={character.theme}>
         <div className="continue-training__identity">
-          <span className="detail__strategy-icon"><Icon name={card.icon} /></span>
+          <ActivityIcon activity={card.id} />
           <div>
             <h3>{card.title}</h3>
             <p>{character.name}{progress.difficulty && <> · {progress.difficulty}</>}</p>
