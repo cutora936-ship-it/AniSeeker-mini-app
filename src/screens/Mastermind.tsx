@@ -7,6 +7,7 @@ import {
   type Clue, type LevelId,
 } from '../mastermind/game';
 import { palette, Peg } from '../mastermind/Peg';
+import { ActivityIcon } from '../training/ActivityIcon';
 import { useSavedTraining, useTrainingCheckpoint } from '../training/useCheckpoint';
 import { useTrainingClock, useTrainingDisplay } from '../training/time';
 import './Mastermind.css';
@@ -257,7 +258,7 @@ export default function Mastermind({ onBack }: { onBack: () => void }) {
         <>
           <section className="mastermind-result surface" aria-labelledby="mastermind-result-title">
             <div className="mastermind-result__heading">
-              <Icon name="mastermind" />
+              <ActivityIcon activity="mastermind" />
               <h2 id="mastermind-result-title" ref={resultHeading} tabIndex={-1}>
                 {won ? 'Код разгадан' : 'Попытки закончились'}
               </h2>

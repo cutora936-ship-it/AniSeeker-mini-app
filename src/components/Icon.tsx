@@ -1,8 +1,6 @@
 import type { ReactNode } from 'react';
 
 const paths = {
-  stroop: <><path d="M3 16 9 5l6 11M5 13h8M14 9h7m-3.5 0v10m-2 0h4" /><circle cx="4" cy="20" r="1" /></>,
-  chat: <><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 3v-3a2 2 0 0 1-1-2V6a2 2 0 0 1 2-2Z" /><path d="M8 9h8m-8 4h5" /></>,
   soundOn: <><path d="M4 9h4l5-4v14l-5-4H4zM17 9a4 4 0 0 1 0 6m2-8a7 7 0 0 1 0 10" /></>,
   soundOff: <><path d="M4 9h4l5-4v14l-5-4H4zM17 10l4 4m0-4-4 4" /></>,
   search: <><circle cx="10.8" cy="10.8" r="6.8" /><path d="m16 16 4.5 4.5" /></>,
@@ -16,10 +14,6 @@ const paths = {
   back: <path d="M20.5 12h-16M11 5.5 4.5 12l6.5 6.5" />,
   close: <path d="m6 6 12 12M18 6 6 18" />,
   image: <><rect x="3.5" y="4.5" width="17" height="15" rx="2.4" /><circle cx="9" cy="9.5" r="1.3" /><path d="m4 16 4-3 3.3 2.1 4.2-4.2 4.8 4.8" /></>,
-  strategy: <path d="M6 3v5h3V5h6v3h3V3h3v7l-4 3v5l2 2v1H5v-1l2-2v-5l-4-3V3zM7 18h10" />,
-  mastermind: <><rect x="3" y="3" width="18" height="18" rx="4" /><path d="m8 8 2 2m4-2h2m-8 8h2m4 0 2-2" /></>,
-  bodyLanguage: <><circle cx="12" cy="5" r="2.5" /><path d="M4 19v-2.5a4.5 4.5 0 0 1 4.5-4.5h7a4.5 4.5 0 0 1 4.5 4.5V19M7 21l10-4m0 4-10-4" /></>,
-  observation: <><path d="M3 8V4a1 1 0 0 1 1-1h4m8 0h4a1 1 0 0 1 1 1v4m0 8v4a1 1 0 0 1-1 1h-4m-8 0H4a1 1 0 0 1-1-1v-4M5 12s2.4-4 7-4 7 4 7 4-2.4 4-7 4-7-4-7-4Z" /><circle cx="12" cy="12" r="1.65" /></>,
   hint: <><path d="M9 18v-2.3a5.5 5.5 0 1 1 6 0V18m-6 0h6m-5 3h4" /><path d="M12 2V1.5M3.5 5.5l1 1m15-1-1 1" /></>,
   restart: <><path d="M4 10a8 8 0 1 1 1.7 7.5M4 5v5h5" /></>,
 } satisfies Record<string, ReactNode>;

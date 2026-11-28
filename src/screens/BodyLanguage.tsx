@@ -3,6 +3,7 @@ import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { bodyLanguageQuestions } from '../data/bodyLanguageQuestions';
 import { createRound, readResults, saveAttempt } from '../body-language/session';
+import { ActivityIcon } from '../training/ActivityIcon';
 import { useSavedTraining, useTrainingCheckpoint } from '../training/useCheckpoint';
 import './BodyLanguage.css';
 
@@ -81,7 +82,7 @@ export default function BodyLanguage({ onBack }: { onBack: () => void }) {
           <p className="body-language-intro">Замечай жесты, мимику и детали ситуации. Учись проверять свои догадки о том, что происходит в разговоре.</p>
           <section className="body-language-panel surface" aria-labelledby="body-language-rules">
             <div className="body-language-panel__title">
-              <span className="body-language-icon"><Icon name="bodyLanguage" /></span>
+              <ActivityIcon activity="body-language" />
               <div>
                 <h2 id="body-language-rules">{bodyLanguageQuestions.length} вопросов</h2>
                 <p>По одному ответу на вопрос</p>

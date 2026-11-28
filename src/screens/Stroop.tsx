@@ -6,6 +6,7 @@ import {
   type Level, type LevelId, type Prompt, type RecordScore, type Response,
 } from '../stroop/game';
 import { createSound, readSound, storeSound } from '../stroop/sound';
+import { ActivityIcon } from '../training/ActivityIcon';
 import { useSavedTraining, useTrainingCheckpoint } from '../training/useCheckpoint';
 import { useTrainingClock, useTrainingDelay, useTrainingDisplay } from '../training/time';
 import './Stroop.css';
@@ -159,7 +160,7 @@ function Session({ levelId, limit, prompts, saved, play, onFinish }: {
 function Best({ record, level }: { record?: RecordScore; level: Level }) {
   return (
     <div className="stroop-record stroop-panel">
-      <Icon name="stroop" />
+      <ActivityIcon activity="stroop" />
       <div><strong>Личный рекорд</strong>
         <p>{record ? `${record.correct} из ${level.rounds} верно${record.average === null ? '' : ` · ${seconds(record.average)} в среднем`}` : 'Появится после первой партии'}</p>
       </div>

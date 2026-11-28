@@ -70,7 +70,7 @@
   margin-top: .65rem;
 }
 
-.match-record svg { color: var(--accent); }
+.match-record .activity-icon { --activity-icon-size: 1.5rem; }
 .match-record p { margin-top: .15rem; color: var(--muted); font-size: .88rem; }
 
 .match-primary,
@@ -217,7 +217,7 @@
   font-weight: 800;
 }
 
-.match-new-record svg { width: 1.15rem; height: 1.15rem; }
+.match-new-record .activity-icon { --activity-icon-size: 1.15rem; }
 
 .match[data-match-phase="results"] { animation: soft-arrive .18s var(--ease) both; }
 

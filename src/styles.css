@@ -597,17 +597,6 @@ svg { display: block; width: 1.5rem; height: 1.5rem; flex: none; }
   border-color: var(--accent);
 }
 
-.detail__strategy-icon {
-  display: grid;
-  width: 2.6rem;
-  aspect-ratio: 1;
-  place-items: center;
-  border: 1px solid var(--rim);
-  border-radius: .72rem;
-  background: var(--accent-surface);
-  color: var(--accent);
-}
-
 .detail__strategy-copy {
   display: grid;
   gap: .18rem;

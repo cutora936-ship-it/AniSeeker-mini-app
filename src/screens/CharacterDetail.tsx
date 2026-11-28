@@ -3,6 +3,7 @@ import { CharacterPlaceholder, DossierLabel } from '../components/CharacterCard'
 import { CharacterPortrait } from '../components/CharacterPortrait';
 import { Icon } from '../components/Icon';
 import type { Activity, Character } from '../data/characters';
+import { ActivityIcon } from '../training/ActivityIcon';
 import { activityCards } from '../training/activities';
 
 export function CharacterDetail({ character, hidden, onOpenActivity }: {
@@ -51,7 +52,7 @@ export function CharacterDetail({ character, hidden, onOpenActivity }: {
             onOpenActivity(activity.id);
           }}
           aria-labelledby={`activity-${activity.id}-title`} aria-describedby={`activity-${activity.id}-description`}>
-          <span className="detail__strategy-icon" aria-hidden="true"><Icon name={activity.icon} /></span>
+          <ActivityIcon activity={activity.id} />
           <span className="detail__strategy-copy">
             <strong id={`activity-${activity.id}-title`}>{activity.title}</strong>
             <span id={`activity-${activity.id}-description`}>{activity.description}</span>

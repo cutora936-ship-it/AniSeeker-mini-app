@@ -293,7 +293,7 @@
 
 .mastermind-result__heading { display: flex; align-items: center; gap: .5rem; }
 .mastermind-result__heading h2 { font-size: 1.12rem; }
-.mastermind-result__heading svg { width: 1.2rem; height: 1.2rem; color: var(--accent); }
+.mastermind-result__heading .activity-icon { --activity-icon-size: 1.2rem; }
 
 .mastermind-secret--revealed { padding: .64rem; border-radius: .65rem; background: var(--surface); }
 .mastermind-result__stats { display: grid; margin: 0; }

@@ -1,0 +1,8 @@
+.activity-icon {
+  display: block;
+  flex: none;
+  width: var(--activity-icon-size, 2.6rem);
+  height: var(--activity-icon-size, 2.6rem);
+  border-radius: 24%;
+  object-fit: contain;
+}
