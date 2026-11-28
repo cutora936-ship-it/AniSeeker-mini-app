@@ -1,3 +1,4 @@
+import type { UserStorage } from '../account/storage';
 export interface MatchResult {
   hits: number;
   errors: number;
@@ -17,9 +18,9 @@ function validResult(value: unknown): value is MatchResult {
   return hits === 10 && Number.isSafeInteger(errors) && errors >= 0 && Number.isFinite(duration) && duration >= 0;
 }
 
-export function readRecords(): MatchRecords {
+export function readRecords(storage: UserStorage): MatchRecords {
   try {
-    const value = JSON.parse(localStorage.getItem(storageKey) ?? 'null');
+    const value = JSON.parse(storage.getItem(storageKey) ?? 'null');
     return { best: validResult(value?.best) ? value.best : null, latest: validResult(value?.latest) ? value.latest : null };
   } catch {
     return { best: null, latest: null };
@@ -30,12 +31,12 @@ export function isRecord(result: MatchResult, best: MatchResult | null) {
   return !best || result.errors < best.errors || (result.errors === best.errors && result.duration < best.duration);
 }
 
-export function saveResult(result: MatchResult, previous: MatchRecords) {
+export function saveResult(storage: UserStorage, result: MatchResult, previous: MatchRecords) {
   const newRecord = isRecord(result, previous.best);
   const records = { latest: result, best: newRecord ? result : previous.best };
 
   try {
-    localStorage.setItem(storageKey, JSON.stringify(records));
+    storage.setItem(storageKey, JSON.stringify(records));
   } catch {
     // Keep the current record visible when storage is unavailable.
   }

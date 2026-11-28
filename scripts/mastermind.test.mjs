@@ -62,16 +62,16 @@ test('local statistics keep the quickest win among the fewest attempts per level
     getItem: (key) => storage.get(key) ?? null,
     setItem: (key, value) => storage.set(key, value),
   };
-  let progress = rememberSecret({}, 'beginner', [0, 1, 2]);
-  progress = saveResult(progress, 'beginner', false, { attempts: 10, duration: 600 });
+  let progress = rememberSecret(globalThis.localStorage, {}, 'beginner', [0, 1, 2]);
+  progress = saveResult(globalThis.localStorage, progress, 'beginner', false, { attempts: 10, duration: 600 });
   assert.equal(getLevelProgress(progress, 'beginner').best, null);
-  progress = saveResult(progress, 'beginner', true, { attempts: 3, duration: 12000 });
-  progress = saveResult(progress, 'beginner', true, { attempts: 4, duration: 9000 });
-  progress = saveResult(progress, 'beginner', true, { attempts: 2, duration: 15000 });
-  progress = saveResult(progress, 'beginner', true, { attempts: 2, duration: 11000 });
-  progress = saveResult(progress, 'expert', true, { attempts: 5, duration: 24000 });
+  progress = saveResult(globalThis.localStorage, progress, 'beginner', true, { attempts: 3, duration: 12000 });
+  progress = saveResult(globalThis.localStorage, progress, 'beginner', true, { attempts: 4, duration: 9000 });
+  progress = saveResult(globalThis.localStorage, progress, 'beginner', true, { attempts: 2, duration: 15000 });
+  progress = saveResult(globalThis.localStorage, progress, 'beginner', true, { attempts: 2, duration: 11000 });
+  progress = saveResult(globalThis.localStorage, progress, 'expert', true, { attempts: 5, duration: 24000 });
 
-  const restored = readProgress();
+  const restored = readProgress(globalThis.localStorage);
   assert.deepEqual(restored.beginner, {
     played: 5, wins: 4, best: { attempts: 2, duration: 11000 }, recent: ['012'],
   });

@@ -1,3 +1,4 @@
+import { useAccount } from '../account/current';
 import { memo, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Icon } from '../components/Icon';
 import { newRun, recordDelivery, replay, skills, takeChoice, type Message, type Run } from '../communication/engine';
@@ -166,9 +167,10 @@ function Review({ story, state, chapter }: { story: Story; state: State; chapter
 }
 
 export default function Communication({ onBack }: { onBack: () => void }) {
-  const [save, setSave] = useState(() => readSave(storyFor));
+  const { storage } = useAccount();
+  const [save, setSave] = useState(() => readSave(storage, storyFor));
   const latestSave = useRef(save);
-  const [sounds, setSounds] = useState(readSound);
+  const [sounds, setSounds] = useState(() => readSound(storage));
   const [audio] = useState(createAudio);
   const [view, setView] = useState<View>(() => save.run ? 'home' : 'choose');
   const [role, setRole] = useState<Role | null>(() => save.run?.role ?? null);
@@ -192,7 +194,7 @@ export default function Communication({ onBack }: { onBack: () => void }) {
   useEffect(() => () => audio.close(), [audio]);
 
   function update(next: Saved) {
-    latestSave.current = writeSave(next, next.run ? storyFor(next.run) : undefined);
+    latestSave.current = writeSave(storage, next, next.run ? storyFor(next.run) : undefined);
     setSave(latestSave.current);
   }
 
@@ -201,7 +203,7 @@ export default function Communication({ onBack }: { onBack: () => void }) {
     if (!before.run || !story) return;
     const next = recordDelivery(before.run, index, at);
     if (next === before.run) return;
-    latestSave.current = writeSave({ ...before, run: next }, story, state ?? undefined);
+    latestSave.current = writeSave(storage, { ...before, run: next }, story, state ?? undefined);
     if (sounds) audio.play('receive');
   }
 
@@ -265,7 +267,7 @@ export default function Communication({ onBack }: { onBack: () => void }) {
               audio.unlock();
               audio.play('tap');
             }
-            writeSound(!sounds);
+            writeSound(storage, !sounds);
             setSounds(!sounds);
           }}><Icon name={sounds ? 'soundOn' : 'soundOff'} /></button>
       </div>

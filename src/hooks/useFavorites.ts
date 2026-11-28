@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useAccount } from '../account/current';
+import type { UserStorage } from '../account/storage';
 
 const storageKey = 'aniseeker:favorites:v1';
 
-function readFavorites(): string[] {
+function readFavorites(storage: UserStorage): string[] {
   try {
-    const saved: unknown = JSON.parse(localStorage.getItem(storageKey) ?? '[]');
+    const saved: unknown = JSON.parse(storage.getItem(storageKey) ?? '[]');
 
     return Array.isArray(saved)
       ? [...new Set(saved.filter((id): id is string => typeof id === 'string'))]
@@ -15,15 +17,19 @@ function readFavorites(): string[] {
 }
 
 export function useFavorites() {
-  const [favoriteIds, setFavoriteIds] = useState(readFavorites);
+  const { storage } = useAccount();
+  const [favoriteIds, setFavoriteIds] = useState(() => readFavorites(storage));
+  const lastState = useRef(favoriteIds);
 
   useEffect(() => {
+    if (lastState.current === favoriteIds) return;
+    lastState.current = favoriteIds;
     try {
-      localStorage.setItem(storageKey, JSON.stringify(favoriteIds));
+      storage.setItem(storageKey, JSON.stringify(favoriteIds));
     } catch {
       // Keep favorites usable for the current session when storage is blocked.
     }
-  }, [favoriteIds]);
+  }, [favoriteIds, storage]);
 
   const toggleFavorite = useCallback((id: string) => {
     setFavoriteIds((current) =>

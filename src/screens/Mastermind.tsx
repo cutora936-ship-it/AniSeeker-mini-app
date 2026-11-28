@@ -1,3 +1,4 @@
+import { useAccount } from '../account/current';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { displayTime } from '../match/records';
@@ -124,9 +125,10 @@ function Rules({ selected, onSelect, onStart }: {
 }
 
 export default function Mastermind({ onBack }: { onBack: () => void }) {
+  const { storage } = useAccount();
   const [levelId, setLevelId] = useState<LevelId>('beginner');
   const [round, setRound] = useState<Round | null>(null);
-  const [progress, setProgress] = useState(readProgress);
+  const [progress, setProgress] = useState(() => readProgress(storage));
   const [draft, setDraft] = useState<(number | null)[]>([]);
   const [selected, setSelected] = useState<number | null>(0);
   const screen = useRef<HTMLElement>(null);
@@ -151,7 +153,7 @@ export default function Mastermind({ onBack }: { onBack: () => void }) {
 
   function start() {
     const secret = generateSecret(level, levelProgress.recent);
-    setProgress(rememberSecret(progress, levelId, secret));
+    setProgress(rememberSecret(storage, progress, levelId, secret));
     resetDraft();
     setRound({ secret, startedAt: performance.now(), history: [] });
   }
@@ -183,7 +185,7 @@ export default function Mastermind({ onBack }: { onBack: () => void }) {
     const correct = clue.exact === level.size;
     if (correct || history.length === level.attempts) {
       const duration = performance.now() - round.startedAt;
-      setProgress(saveResult(progress, levelId, correct, { attempts: history.length, duration }));
+      setProgress(saveResult(storage, progress, levelId, correct, { attempts: history.length, duration }));
       setRound({ ...round, history, duration });
       return;
     }

@@ -1,3 +1,4 @@
+import type { UserStorage } from '../account/storage';
 export const levels = {
   beginner: { name: 'Новичок', colors: 4, size: 3, attempts: 10, repeats: false },
   easy: { name: 'Лёгкий', colors: 6, size: 4, attempts: 10, repeats: false },
@@ -88,9 +89,9 @@ export function getLevelProgress(progress: Progress, id: LevelId): LevelProgress
 
 const isCount = (value: unknown): value is number => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 
-export function readProgress(): Progress {
+export function readProgress(storage: UserStorage): Progress {
   try {
-    const saved = JSON.parse(localStorage.getItem(storageKey) ?? 'null');
+    const saved = JSON.parse(storage.getItem(storageKey) ?? 'null');
     const progress: Progress = {};
 
     for (const id of Object.keys(levels) as LevelId[]) {
@@ -117,29 +118,29 @@ export function readProgress(): Progress {
   }
 }
 
-function storeProgress(progress: Progress, id: LevelId, entry: LevelProgress): Progress {
+function storeProgress(storage: UserStorage, progress: Progress, id: LevelId, entry: LevelProgress): Progress {
   const next = { ...progress, [id]: entry };
   try {
-    localStorage.setItem(storageKey, JSON.stringify(next));
+    storage.setItem(storageKey, JSON.stringify(next));
   } catch {
     // Keep the game usable when browser storage is unavailable.
   }
   return next;
 }
 
-export function rememberSecret(progress: Progress, id: LevelId, secret: readonly number[]): Progress {
+export function rememberSecret(storage: UserStorage, progress: Progress, id: LevelId, secret: readonly number[]): Progress {
   const entry = getLevelProgress(progress, id);
   const key = secret.join('');
   const recent = [key, ...entry.recent.filter((previous) => previous !== key)].slice(0, recentLimit);
-  return storeProgress(progress, id, { ...entry, recent });
+  return storeProgress(storage, progress, id, { ...entry, recent });
 }
 
-export function saveResult(progress: Progress, id: LevelId, won: boolean, result: RecordResult): Progress {
+export function saveResult(storage: UserStorage, progress: Progress, id: LevelId, won: boolean, result: RecordResult): Progress {
   const entry = getLevelProgress(progress, id);
   const { best } = entry;
   const isRecord = won && (!best || result.attempts < best.attempts
     || (result.attempts === best.attempts && result.duration < best.duration));
-  return storeProgress(progress, id, {
+  return storeProgress(storage, progress, id, {
     ...entry, played: entry.played + 1, wins: entry.wins + Number(won), best: isRecord ? result : best,
   });
 }

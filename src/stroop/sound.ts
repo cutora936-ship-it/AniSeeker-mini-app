@@ -1,3 +1,4 @@
+import type { UserStorage } from '../account/storage';
 const key = 'aniseeker:stroop:sound:v1';
 const notes = {
   tap: [390],
@@ -6,12 +7,12 @@ const notes = {
   finish: [440, 554, 660],
 } as const;
 
-export function readSound() {
-  try { return localStorage.getItem(key) !== 'off'; } catch { return true; }
+export function readSound(storage: UserStorage) {
+  try { return storage.getItem(key) !== 'off'; } catch { return true; }
 }
 
-export function storeSound(enabled: boolean) {
-  try { localStorage.setItem(key, enabled ? 'on' : 'off'); } catch { /* Storage may be blocked. */ }
+export function storeSound(storage: UserStorage, enabled: boolean) {
+  try { storage.setItem(key, enabled ? 'on' : 'off'); } catch { /* Storage may be blocked. */ }
 }
 
 export function createSound() {

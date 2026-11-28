@@ -66,18 +66,18 @@ test('records keep the most correct answers, then fastest average, separately pe
   const timed = recordKey('medium', true);
   const untimed = recordKey('medium', false);
   const expert = recordKey('expert', true);
-  let records = readRecords();
-  records = saveRecord(records, timed, { correct: 10, average: 900 });
-  assert.strictEqual(saveRecord(records, timed, { correct: 8, average: 100 }), records);
-  assert.strictEqual(saveRecord(records, timed, { correct: 10, average: 1200 }), records);
-  records = saveRecord(records, timed, { correct: 10, average: 500 });
-  records = saveRecord(records, untimed, { correct: 12, average: 700 });
-  records = saveRecord(records, expert, { correct: 0, average: null });
-  assert.deepEqual(readRecords(), {
+  let records = readRecords(globalThis.localStorage);
+  records = saveRecord(globalThis.localStorage, records, timed, { correct: 10, average: 900 });
+  assert.strictEqual(saveRecord(globalThis.localStorage, records, timed, { correct: 8, average: 100 }), records);
+  assert.strictEqual(saveRecord(globalThis.localStorage, records, timed, { correct: 10, average: 1200 }), records);
+  records = saveRecord(globalThis.localStorage, records, timed, { correct: 10, average: 500 });
+  records = saveRecord(globalThis.localStorage, records, untimed, { correct: 12, average: 700 });
+  records = saveRecord(globalThis.localStorage, records, expert, { correct: 0, average: null });
+  assert.deepEqual(readRecords(globalThis.localStorage), {
     [timed]: { correct: 10, average: 500 },
     [untimed]: { correct: 12, average: 700 },
     [expert]: { correct: 0, average: null },
   });
   memory.set('aniseeker:stroop:records:v1', '{"medium:timed":{"correct":21,"average":42}}');
-  assert.deepEqual(readRecords(), {});
+  assert.deepEqual(readRecords(globalThis.localStorage), {});
 });

@@ -1,3 +1,4 @@
+import { useAccount } from '../account/current';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { makeRound, roundsPerGame, type MatchRound } from './round';
 import { readRecords, saveResult, type MatchResult } from './records';
@@ -14,8 +15,9 @@ export interface Feedback {
 }
 
 export function useMatch(onPlayingChange: (active: boolean) => void) {
+  const { storage } = useAccount();
   const [session, setSession] = useState<Session>({ phase: 'welcome' });
-  const [records, setRecords] = useState(readRecords);
+  const [records, setRecords] = useState(() => readRecords(storage));
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const locked = useRef(false);
   const feedbackTimeout = useRef<number | undefined>(undefined);
@@ -45,7 +47,7 @@ export function useMatch(onPlayingChange: (active: boolean) => void) {
     if (hits === roundsPerGame) {
       const duration = performance.now() - session.startedAt;
       const result = { hits, errors, duration };
-      const saved = saveResult(result, records);
+      const saved = saveResult(storage, result, records);
       setSession({ ...next, finishedDuration: duration });
       setRecords(saved.records);
       feedbackTimeout.current = window.setTimeout(() => {

@@ -1,10 +1,13 @@
 import { useEffect, useEffectEvent, useState } from 'react';
 
 export interface TelegramUser {
+  id: number;
   first_name: string;
   last_name?: string;
   username?: string;
 }
+
+type TelegramEvent = 'safeAreaChanged' | 'contentSafeAreaChanged' | 'activated';
 
 type Insets = Readonly<Record<'top' | 'right' | 'bottom' | 'left', number>>;
 
@@ -26,20 +29,21 @@ interface TelegramWebApp {
   setHeaderColor(color: string): void;
   setBackgroundColor(color: string): void;
   disableVerticalSwipes?(): void;
-  onEvent(event: 'safeAreaChanged' | 'contentSafeAreaChanged', handler: () => void): void;
-  offEvent(event: 'safeAreaChanged' | 'contentSafeAreaChanged', handler: () => void): void;
+  onEvent(event: TelegramEvent, handler: () => void): void;
+  offEvent(event: TelegramEvent, handler: () => void): void;
 }
 
 declare global {
   interface Window {
     Telegram?: { WebApp?: TelegramWebApp };
+    TelegramWebviewProxy?: object;
   }
 }
 
-function getTelegram() {
+export function getTelegram() {
   const app = window.Telegram?.WebApp;
 
-  return app && (app.initData || (app.platform && app.platform !== 'unknown')) ? app : null;
+  return app && (app.initDataUnsafe.user || app.initData || (app.platform && app.platform !== 'unknown')) ? app : null;
 }
 
 export function useTelegram(onBack?: () => void) {
@@ -114,6 +118,4 @@ export function useTelegram(onBack?: () => void) {
       app.BackButton.hide();
     };
   }, [app, hasBack]);
-
-  return app?.initDataUnsafe.user;
 }

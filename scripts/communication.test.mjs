@@ -77,9 +77,9 @@ test('reload resumes only undelivered messages, using the original timestamps', 
   assert.strictEqual(recordDelivery(run, 2, 13001), run);
   const saved = { run, endings: [] };
   const story = stories.male;
-  writeSave(saved, story);
-  assert.deepEqual(readSave(storyFor), saved);
-  const before = replay(story, readSave(storyFor).run);
+  writeSave(globalThis.localStorage, saved, story);
+  assert.deepEqual(readSave(globalThis.localStorage, storyFor), saved);
+  const before = replay(story, readSave(globalThis.localStorage, storyFor).run);
   assert.equal(before.history[0].at, 13000);
   assert.equal(before.history.length, 2);
   run = recordDelivery(run, 1, 14000);
@@ -97,8 +97,8 @@ test('v1 saves retain their original dialogue, chapter progress and unlocked end
     delete run.delivered;
     const before = replay(story, run);
     const endings = [{ role, ending: 'friendship', decisions: 80, completedAt: 12000 }];
-    writeSave({ run, endings }, story);
-    const restored = readSave(storyFor);
+    writeSave(globalThis.localStorage, { run, endings }, story);
+    const restored = readSave(globalThis.localStorage, storyFor);
     assert.deepEqual(restored.endings, endings);
     assert.equal(storyFor(restored.run), story);
     assert.deepEqual(replay(story, restored.run), before);
