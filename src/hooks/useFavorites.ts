@@ -17,25 +17,26 @@ function readFavorites(storage: UserStorage): string[] {
 }
 
 export function useFavorites() {
-  const { storage } = useAccount();
+  const { storage, cloud } = useAccount();
   const [favoriteIds, setFavoriteIds] = useState(() => readFavorites(storage));
   const lastState = useRef(favoriteIds);
 
-  useEffect(() => {
-    if (lastState.current === favoriteIds) return;
-    lastState.current = favoriteIds;
+  useEffect(() => cloud?.subscribeData('favorites:v1', () => {
+    lastState.current = readFavorites(storage);
+    setFavoriteIds(lastState.current);
+  }), [cloud, storage]);
+
+  const toggleFavorite = useCallback((id: string) => {
+    const current = lastState.current;
+    const next = current.includes(id) ? current.filter((favorite) => favorite !== id) : [...current, id];
+    lastState.current = next;
+    setFavoriteIds(next);
     try {
-      storage.setItem(storageKey, JSON.stringify(favoriteIds));
+      storage.setItem(storageKey, JSON.stringify(next));
     } catch {
       // Keep favorites usable for the current session when storage is blocked.
     }
-  }, [favoriteIds, storage]);
-
-  const toggleFavorite = useCallback((id: string) => {
-    setFavoriteIds((current) =>
-      current.includes(id) ? current.filter((favorite) => favorite !== id) : [...current, id],
-    );
-  }, []);
+  }, [storage]);
 
   return { favoriteIds, toggleFavorite };
 }

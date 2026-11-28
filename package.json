@@ -17,13 +17,16 @@
     "test:communication": "node --test scripts/communication.test.mjs",
     "test:stroop": "node --experimental-strip-types --test scripts/stroop.test.mjs",
     "test:account": "node --experimental-strip-types --test scripts/account.test.mjs",
-    "test:training": "node --test scripts/training.test.mjs"
+    "test:training": "node --test scripts/training.test.mjs",
+    "test:server-account": "node --test scripts/server-account.test.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",
+    "@supabase/supabase-js": "^2.119.2",
     "chess.js": "^1.4.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@types/react": "^19.2.0",
