@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 const paths = {
+  stroop: <><path d="M3 16 9 5l6 11M5 13h8M14 9h7m-3.5 0v10m-2 0h4" /><circle cx="4" cy="20" r="1" /></>,
   chat: <><path d="M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 3v-3a2 2 0 0 1-1-2V6a2 2 0 0 1 2-2Z" /><path d="M8 9h8m-8 4h5" /></>,
   soundOn: <><path d="M4 9h4l5-4v14l-5-4H4zM17 9a4 4 0 0 1 0 6m2-8a7 7 0 0 1 0 10" /></>,
   soundOff: <><path d="M4 9h4l5-4v14l-5-4H4zM17 10l4 4m0-4-4 4" /></>,
