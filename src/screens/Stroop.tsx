@@ -1,15 +1,21 @@
 import { useAccount } from '../account/current';
-import { useEffect, useEffectEvent, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Icon } from '../components/Icon';
 import {
   colors, judge, levels, makePrompts, readRecords, recordKey, saveRecord, summarize,
   type Level, type LevelId, type Prompt, type RecordScore, type Response,
 } from '../stroop/game';
 import { createSound, readSound, storeSound } from '../stroop/sound';
+import { useSavedTraining, useTrainingCheckpoint } from '../training/useCheckpoint';
+import { useTrainingClock, useTrainingDelay, useTrainingDisplay } from '../training/time';
 import './Stroop.css';
 
 type PlaySound = (cue: 'tap' | 'correct' | 'wrong' | 'finish') => void;
 type Summary = ReturnType<typeof summarize>;
+type Save = {
+  levelId: LevelId; limit: number; prompts: readonly Prompt[]; responses: Response[];
+  turn: number; selected: number | null; elapsed: number; roundStart: number;
+};
 type View = 'intro' | 'playing' | 'results';
 const feedbackMs = 520;
 const levelIds = Object.keys(levels) as LevelId[];
@@ -63,78 +69,65 @@ function Demo({ play }: { play: PlaySound }) {
   );
 }
 
-function Timer({ limit, deadline, stopped }: { limit: number; deadline: number | null; stopped: number | null }) {
-  const [remaining, setRemaining] = useState(limit / 1000);
-
-  useEffect(() => {
-    if (!limit || deadline === null || stopped !== null) return;
-    const update = () => setRemaining(Math.ceil(Math.max(0, deadline - performance.now()) / 100) / 10);
-    update();
-    const timer = window.setInterval(update, 100);
-    return () => window.clearInterval(timer);
-  }, [deadline, limit, stopped]);
-
+function Timer({ limit, elapsed, stopped }: { limit: number; elapsed: () => number; stopped: number | null }) {
+  const time = useTrainingDisplay(elapsed, limit > 0 && stopped === null);
   if (!limit) return <>Без лимита</>;
-  return <>{(stopped ?? remaining).toFixed(1).replace('.', ',')} с</>;
+  const remaining = Math.ceil(Math.max(0, limit - (stopped ?? time)) / 100) / 10;
+  return <>{remaining.toFixed(1).replace('.', ',')} с</>;
 }
 
-function Session({ level, limit, prompts, play, onFinish }: {
-  level: Level;
+function Session({ levelId, limit, prompts, saved, play, onFinish }: {
+  levelId: LevelId;
   limit: number;
   prompts: readonly Prompt[];
+  saved?: Save;
   play: PlaySound;
   onFinish: (result: Summary) => void;
 }) {
-  const [responses, setResponses] = useState<Response[]>([]);
-  const [selected, setSelected] = useState<number | null>(null);
-  const [turn, setTurn] = useState(0);
-  const [deadline, setDeadline] = useState<number | null>(null);
-  const started = useRef(0);
-  const roundStart = useRef(0);
-  const answered = useRef(false);
+  const level = levels[levelId];
+  const [responses, setResponses] = useState<Response[]>(() => saved?.responses ?? []);
+  const [selected, setSelected] = useState<number | null>(() => saved?.selected ?? null);
+  const [turn, setTurn] = useState(() => saved?.turn ?? 0);
+  const [roundStart, setRoundStart] = useState(() => saved?.roundStart ?? 0);
+  const clock = useTrainingClock(saved?.elapsed ?? 0, true);
+  const answered = useRef(Boolean(responses[turn]));
   const prompt = prompts[turn];
   const response = responses[turn];
-
-  useLayoutEffect(() => {
-    const now = performance.now();
-    if (turn === 0) started.current = now;
-    roundStart.current = now;
-    answered.current = false;
-    setDeadline(now + limit);
-  }, [turn, limit]);
+  const roundElapsed = useCallback(() => clock.elapsed() - roundStart, [clock, roundStart]);
+  const checkpoint = useMemo<Save>(() => ({
+    levelId, limit, prompts, responses, turn, selected, elapsed: 0, roundStart,
+  }), [levelId, limit, prompts, responses, turn, selected, roundStart]);
+  const complete = useTrainingCheckpoint('stroop', checkpoint, {
+    label: `Раунд ${turn + 1} из ${level.rounds}`,
+    value: responses.length, total: level.rounds, difficulty: level.name,
+  }, data => ({ ...data, elapsed: clock.elapsed() }));
 
   function submit(index: number | null) {
     if (answered.current) return;
     answered.current = true;
-    const result = judge(prompt, index, performance.now() - roundStart.current, limit);
+    const result = judge(prompt, index, roundElapsed(), limit);
     setSelected(result.kind === 'timeout' ? null : index);
     setResponses((previous) => [...previous, result]);
     if (result.kind !== 'timeout') play(result.kind);
   }
 
-  const expire = useEffectEvent(() => submit(null));
-  const advance = useEffectEvent(() => {
+  const used = saved?.turn === turn ? saved.elapsed - saved.roundStart : 0;
+  useTrainingDelay(!response && limit ? Math.max(0, limit - used) : null, () => submit(null), turn);
+  useTrainingDelay(response ? feedbackMs : null, () => {
     if (!response) return;
     if (turn + 1 === level.rounds) {
-      onFinish(summarize(responses, roundStart.current - started.current + response.elapsed));
-    } else setTurn(turn + 1);
-  });
-
-  useEffect(() => {
-    if (response || !limit || deadline === null) return;
-    const timer = window.setTimeout(expire, Math.ceil(Math.max(0, deadline - performance.now())));
-    return () => window.clearTimeout(timer);
-  }, [deadline, limit, response]);
-
-  useEffect(() => {
-    if (!response) return;
-    const timer = window.setTimeout(advance, feedbackMs);
-    return () => window.clearTimeout(timer);
-  }, [response]);
+      complete();
+      onFinish(summarize(responses, roundStart + response.elapsed));
+    } else {
+      answered.current = false;
+      setRoundStart(clock.elapsed());
+      setTurn(turn + 1);
+    }
+  }, turn);
 
   const correct = responses.filter(({ kind }) => kind === 'correct').length;
   const errors = responses.filter(({ kind }) => kind === 'wrong').length;
-  const stopped = response ? Math.max(0, Math.ceil((limit - response.elapsed) / 100) / 10) : null;
+  const stopped = response?.elapsed ?? null;
 
   return (
     <div className="stroop-session">
@@ -142,7 +135,7 @@ function Session({ level, limit, prompts, play, onFinish }: {
         <div><dt>Раунд</dt><dd>{turn + 1} / {level.rounds}</dd></div>
         <div><dt>Верно</dt><dd>{correct}</dd></div>
         <div><dt>Ошибки</dt><dd>{errors}</dd></div>
-        <div><dt>Таймер</dt><dd><Timer key={turn} limit={limit} deadline={deadline} stopped={stopped} /></dd></div>
+        <div><dt>Таймер</dt><dd><Timer key={turn} limit={limit} elapsed={roundElapsed} stopped={stopped} /></dd></div>
       </dl>
       <div className="stroop-progress" role="progressbar" aria-label="Прогресс игры"
         aria-valuenow={responses.length} aria-valuemax={level.rounds}>
@@ -176,10 +169,12 @@ function Best({ record, level }: { record?: RecordScore; level: Level }) {
 
 export default function Stroop({ onBack }: { onBack: () => void }) {
   const { storage } = useAccount();
-  const [view, setView] = useState<View>('intro');
-  const [levelId, setLevel] = useState<LevelId>('beginner');
-  const [untimed, setUntimed] = useState(false);
-  const [prompts, setPrompts] = useState<readonly Prompt[]>([]);
+  const initial = useSavedTraining<Save>('stroop');
+  const [saved, setSaved] = useState(initial);
+  const [view, setView] = useState<View>(() => saved ? 'playing' : 'intro');
+  const [levelId, setLevel] = useState<LevelId>(() => saved?.levelId ?? 'beginner');
+  const [untimed, setUntimed] = useState(() => saved?.limit === 0);
+  const [prompts, setPrompts] = useState<readonly Prompt[]>(() => saved?.prompts ?? []);
   const [records, setRecords] = useState(() => readRecords(storage));
   const [result, setResult] = useState<Summary | null>(null);
   const [enabled, setEnabled] = useState(() => readSound(storage));
@@ -187,7 +182,7 @@ export default function Stroop({ onBack }: { onBack: () => void }) {
   const screen = useRef<HTMLElement>(null);
   const title = useRef<HTMLHeadingElement>(null);
   const level = levels[levelId];
-  const limit = untimed ? 0 : level.seconds * 1000;
+  const limit = view === 'playing' && saved ? saved.limit : untimed ? 0 : level.seconds * 1000;
   const key = recordKey(levelId, limit > 0);
 
   useEffect(() => () => audio.close(), [audio]);
@@ -206,6 +201,7 @@ export default function Stroop({ onBack }: { onBack: () => void }) {
 
   function start() {
     sound('tap');
+    setSaved(undefined);
     setPrompts(makePrompts(level));
     setView('playing');
   }
@@ -264,7 +260,7 @@ export default function Stroop({ onBack }: { onBack: () => void }) {
         <button type="button" className="stroop-action stroop-primary" onClick={start}>Начать игру <Icon name="right" /></button>
       </>}
 
-      {view === 'playing' && <Session level={level} limit={limit} prompts={prompts} play={sound} onFinish={finish} />}
+      {view === 'playing' && <Session levelId={levelId} limit={limit} prompts={prompts} saved={saved} play={sound} onFinish={finish} />}
 
       {view === 'results' && result && <div className="stroop-results">
         <section className="stroop-summary stroop-panel" aria-label="Статистика">

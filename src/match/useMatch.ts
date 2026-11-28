@@ -1,11 +1,13 @@
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useAccount } from '../account/current';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useSavedTraining, useTrainingCheckpoint } from '../training/useCheckpoint';
+import { useTrainingClock, useTrainingDelay } from '../training/time';
 import { makeRound, roundsPerGame, type MatchRound } from './round';
 import { readRecords, saveResult, type MatchResult } from './records';
 
 type Session =
   | { phase: 'welcome' }
-  | { phase: 'playing'; pair: MatchRound; startedAt: number; hits: number; errors: number; finishedDuration?: number }
+  | { phase: 'playing'; pair: MatchRound; hits: number; errors: number; finishedDuration?: number }
   | { phase: 'results'; result: MatchResult; newRecord: boolean };
 
 export interface Feedback {
@@ -14,26 +16,56 @@ export interface Feedback {
   correct: boolean;
 }
 
+type Save = {
+  session: Extract<Session, { phase: 'playing' }>;
+  feedback: Feedback | null;
+  nextPair: MatchRound | null;
+  elapsed: number;
+};
+
 export function useMatch(onPlayingChange: (active: boolean) => void) {
   const { storage } = useAccount();
-  const [session, setSession] = useState<Session>({ phase: 'welcome' });
+  const saved = useSavedTraining<Save>('match');
+  const [session, setSession] = useState<Session>(() => saved?.session ?? { phase: 'welcome' });
   const [records, setRecords] = useState(() => readRecords(storage));
-  const [feedback, setFeedback] = useState<Feedback | null>(null);
-  const locked = useRef(false);
-  const feedbackTimeout = useRef<number | undefined>(undefined);
-
-  useEffect(() => () => window.clearTimeout(feedbackTimeout.current), []);
+  const [feedback, setFeedback] = useState<Feedback | null>(() => saved?.feedback ?? null);
+  const [nextPair, setNextPair] = useState<MatchRound | null>(() => saved?.nextPair ?? null);
+  const result = useRef<Extract<Session, { phase: 'results' }> | null>(null);
+  const locked = useRef(Boolean(saved?.feedback));
+  const playing = session.phase === 'playing';
+  const running = playing && session.finishedDuration === undefined;
+  const clock = useTrainingClock(saved?.elapsed ?? 0, running);
+  const checkpoint = useMemo<Save | null>(() => running
+    ? { session, feedback, nextPair, elapsed: 0 }
+    : null, [running, session, feedback, nextPair]);
+  useTrainingCheckpoint('match', checkpoint, {
+    label: `Раунд ${playing ? Math.min(session.hits + 1, roundsPerGame) : 1} из ${roundsPerGame}`,
+    value: playing ? session.hits : 0,
+    total: roundsPerGame,
+  }, (data) => ({ ...data, elapsed: clock.elapsed() }));
 
   useLayoutEffect(() => {
-    if (!feedback) locked.current = false;
-  }, [feedback]);
+    onPlayingChange(playing);
+  }, [playing, onPlayingChange]);
+
+  useTrainingDelay(feedback ? (result.current ? 320 : feedback.correct ? 300 : 230) : null, () => {
+    if (result.current) {
+      setSession(result.current);
+      result.current = null;
+    } else if (session.phase === 'playing' && nextPair) {
+      setSession({ ...session, pair: nextPair });
+    }
+    setFeedback(null);
+    setNextPair(null);
+    locked.current = false;
+  }, feedback);
 
   function start() {
-    window.clearTimeout(feedbackTimeout.current);
+    clock.reset();
     locked.current = false;
     setFeedback(null);
-    setSession({ phase: 'playing', pair: makeRound(), startedAt: performance.now(), hits: 0, errors: 0 });
-    onPlayingChange(true);
+    setNextPair(null);
+    setSession({ phase: 'playing', pair: makeRound(), hits: 0, errors: 0 });
   }
 
   function answer(card: number, id: number) {
@@ -45,25 +77,17 @@ export function useMatch(onPlayingChange: (active: boolean) => void) {
     const next = { ...session, hits, errors };
     setFeedback({ id, card, correct });
     if (hits === roundsPerGame) {
-      const duration = performance.now() - session.startedAt;
-      const result = { hits, errors, duration };
-      const saved = saveResult(storage, result, records);
+      const duration = clock.elapsed();
+      const score = { hits, errors, duration };
+      const savedResult = saveResult(storage, score, records);
+      result.current = { phase: 'results', result: score, newRecord: savedResult.newRecord };
       setSession({ ...next, finishedDuration: duration });
-      setRecords(saved.records);
-      feedbackTimeout.current = window.setTimeout(() => {
-        setFeedback(null);
-        setSession({ phase: 'results', result, newRecord: saved.newRecord });
-        onPlayingChange(false);
-      }, 320);
-      return;
+      setRecords(savedResult.records);
+    } else {
+      setSession(next);
+      if (correct) setNextPair(makeRound());
     }
-
-    setSession(next);
-    feedbackTimeout.current = window.setTimeout(() => {
-      if (correct) setSession({ ...next, pair: makeRound() });
-      setFeedback(null);
-    }, correct ? 300 : 230);
   }
 
-  return { session, records, feedback, start, answer };
+  return { session, records, feedback, elapsed: clock.elapsed, start, answer };
 }

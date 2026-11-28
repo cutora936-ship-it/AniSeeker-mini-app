@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { Icon } from '../components/Icon';
 import { MatchCard } from '../match/MatchCard';
 import { Symbol } from '../match/Symbol';
 import { roundsPerGame } from '../match/round';
 import { displayTime, type MatchResult } from '../match/records';
 import { useMatch } from '../match/useMatch';
+import { useTrainingDisplay } from '../training/time';
 import './MatchGame.css';
 
 function RecordLine({ best }: { best: MatchResult }) {
@@ -16,23 +17,16 @@ function RecordLine({ best }: { best: MatchResult }) {
   );
 }
 
-function MatchClock({ startedAt, finishedDuration }: { startedAt: number; finishedDuration?: number }) {
-  const [elapsed, setElapsed] = useState(0);
-
-  useEffect(() => {
-    if (finishedDuration !== undefined) return;
-    const timer = window.setInterval(() => setElapsed(performance.now() - startedAt), 100);
-    return () => window.clearInterval(timer);
-  }, [finishedDuration, startedAt]);
-
-  return <dd>{displayTime(finishedDuration ?? elapsed)}</dd>;
+function MatchClock({ elapsed, finishedDuration }: { elapsed: () => number; finishedDuration?: number }) {
+  const time = useTrainingDisplay(elapsed, finishedDuration === undefined);
+  return <dd>{displayTime(finishedDuration ?? time)}</dd>;
 }
 
 export default function MatchGame({ onBack, onPlayingChange }: {
   onBack: () => void;
   onPlayingChange: (playing: boolean) => void;
 }) {
-  const { session, records, feedback, start, answer } = useMatch(onPlayingChange);
+  const { session, records, feedback, elapsed, start, answer } = useMatch(onPlayingChange);
   const screen = useRef<HTMLElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const phase = session.phase;
@@ -76,7 +70,7 @@ export default function MatchGame({ onBack, onPlayingChange }: {
           <dl className="match-live-stats surface">
             <div><dt>Верно</dt><dd>{session.hits}</dd></div>
             <div><dt>Ошибки</dt><dd>{session.errors}</dd></div>
-            <div><dt>Время</dt><MatchClock startedAt={session.startedAt} finishedDuration={session.finishedDuration} /></div>
+            <div><dt>Время</dt><MatchClock elapsed={elapsed} finishedDuration={session.finishedDuration} /></div>
           </dl>
           <progress className="match-progress" aria-label="Прогресс игры" value={session.hits} max={roundsPerGame} />
           <div className="match-board">

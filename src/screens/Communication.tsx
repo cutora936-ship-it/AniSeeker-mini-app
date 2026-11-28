@@ -1,12 +1,14 @@
 import { useAccount } from '../account/current';
-import { memo, useEffect, useEffectEvent, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { memo, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Icon } from '../components/Icon';
 import { newRun, recordDelivery, replay, skills, takeChoice, type Message, type Run } from '../communication/engine';
 import { createAudio, readSound, writeSound } from '../communication/audio';
-import { afterDelivery, scheduleMessage, typingDelay, type Phase } from '../communication/queue';
+import { afterDelivery, typingDelay, type Phase } from '../communication/queue';
 import { readSave, writeSave, type Saved } from '../communication/storage';
 import type { Role, Story } from '../communication/types';
 import { stories, storyFor } from '../data/communication';
+import { useSavedTraining, useTrainingCheckpoint } from '../training/useCheckpoint';
+import { useTrainingDelay } from '../training/time';
 import './Communication.css';
 
 type State = ReturnType<typeof replay>;
@@ -59,19 +61,21 @@ function Chat({ story, run, state, onChoice, onReview, onDelivery }: {
   const thread = useRef<HTMLDivElement>(null);
   const earlierAnchor = useRef<{ height: number; top: number }>(null);
   const first = Math.max(0, shown - limit);
-  const deliver = useEffectEvent(() => {
+  function deliver() {
     const at = Date.now();
     onDelivery(shown, at);
     setArrivals((previous) => ({ ...previous, [shown]: at }));
     setShown(shown + 1);
     setPhase(afterDelivery(shown, state.history.length));
-  });
+  }
 
-  useEffect(() => {
-    if (phase === 'idle') return;
-    if (phase === 'pause') return scheduleMessage(fast ? 75 : 230, () => setPhase('typing'));
-    return scheduleMessage(fast ? 140 : typingDelay(state.history[shown].text), deliver);
-  }, [phase, fast, shown, state.history]);
+  const delay = useMemo(() => phase === 'idle' ? null
+    : phase === 'pause' ? (fast ? 75 : 230)
+      : fast ? 140 : typingDelay(state.history[shown].text), [phase, fast, shown, state.history]);
+  useTrainingDelay(delay, () => {
+    if (phase === 'pause') setPhase('typing');
+    else deliver();
+  }, phase);
 
   useLayoutEffect(() => {
     const element = thread.current;
@@ -166,13 +170,15 @@ function Review({ story, state, chapter }: { story: Story; state: State; chapter
   );
 }
 
-export default function Communication({ onBack }: { onBack: () => void }) {
+export default function Communication({ onBack, resume = false }: { onBack: () => void; resume?: boolean }) {
   const { storage } = useAccount();
   const [save, setSave] = useState(() => readSave(storage, storyFor));
   const latestSave = useRef(save);
+  const checkpoint = useSavedTraining<{ review: boolean }>('communication');
   const [sounds, setSounds] = useState(() => readSound(storage));
   const [audio] = useState(createAudio);
-  const [view, setView] = useState<View>(() => save.run ? 'home' : 'choose');
+  const [view, setView] = useState<View>(() => save.run ? (resume ? (checkpoint?.review && !save.run.finished ? 'review' : 'chat') : 'home') : 'choose');
+  const [reviewPending, setReviewPending] = useState(() => Boolean(checkpoint?.review));
   const [role, setRole] = useState<Role | null>(() => save.run?.role ?? null);
   const [archived, setArchived] = useState<number | null>(null);
   const [confirm, setConfirm] = useState<'restart' | number | null>(null);
@@ -184,6 +190,15 @@ export default function Communication({ onBack }: { onBack: () => void }) {
   const completed = run && state ? run.openedChapter + Number(state.gate) : 0;
   const chapter = archived ?? run?.openedChapter ?? 0;
   const currentView = view === 'chat' && run?.finished ? 'review' : view;
+  const resumable = useMemo(() => run && !run.finished ? {
+    review: reviewPending && Boolean(state?.gate),
+    decisions: run.decisions.length,
+    chapter: run.openedChapter,
+  } : null, [run, reviewPending, state?.gate]);
+  useTrainingCheckpoint('communication', resumable, {
+    label: `Глава ${(run?.openedChapter ?? 0) + 1} из ${story?.chapters.length ?? 1}`,
+    value: completed, total: story?.chapters.length ?? 1,
+  });
   const ending = currentView === 'review' && archived === null && run?.finished ? state?.ending : undefined;
 
   useLayoutEffect(() => {
@@ -211,6 +226,7 @@ export default function Communication({ onBack }: { onBack: () => void }) {
     if (!role) return;
     update({ ...save, run: newRun(role) });
     setArchived(null);
+    setReviewPending(false);
     setView('chat');
   }
 
@@ -239,6 +255,7 @@ export default function Communication({ onBack }: { onBack: () => void }) {
         }],
       });
     } else if (state.next) {
+      setReviewPending(false);
       update({ ...save, run: { ...run, openedChapter: state.next.chapter,
         chapterTimes: { ...run.chapterTimes, [state.next.chapter]: Date.now() } } });
       setView('chat');
@@ -302,7 +319,7 @@ export default function Communication({ onBack }: { onBack: () => void }) {
             <img src={story.person.avatar} width={48} height={48} alt="" />
             <div><h2>{story.person.name}</h2><p>{run.finished ? 'История завершена' : `Глава ${run.openedChapter + 1} из ${story.chapters.length}`}</p></div>
           </div>
-          <button type="button" className="communication-button communication-button--primary" onClick={() => setView('chat')}>
+          <button type="button" className="communication-button communication-button--primary" onClick={() => setView(reviewPending && !run.finished ? 'review' : 'chat')}>
             {run.finished ? 'Открыть итоги' : 'Продолжить историю'} <Icon name="right" />
           </button>
           <button type="button" className="communication-button surface" onClick={() => setConfirm('restart')}>Начать заново</button>
@@ -322,6 +339,7 @@ export default function Communication({ onBack }: { onBack: () => void }) {
             onDelivery={receive} onReview={() => {
               if (sounds) audio.play('chapter');
               setSave(latestSave.current);
+              setReviewPending(true);
               setView('review');
             }} />
         </>

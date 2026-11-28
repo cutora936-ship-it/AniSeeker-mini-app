@@ -1,5 +1,5 @@
 import { useAccount } from '../account/current';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { Chess, Move, Square } from 'chess.js';
 import { Icon } from '../components/Icon';
 import { strategyPuzzles, type StrategyPuzzle } from '../data/strategyPuzzles';
@@ -7,6 +7,8 @@ import { ChessBoard, pieceImage, pieceNames } from '../strategy/ChessBoard';
 import {
   evaluateAttempt, readStrategyProgress, recordMove, replayPosition, strategyStorageKey,
 } from '../strategy/progress';
+import { useSavedTraining, useTrainingCheckpoint } from '../training/useCheckpoint';
+import { useTrainingDelay } from '../training/time';
 import './Strategy.css';
 
 function StrategyDialog({ title, children, cancel }: {
@@ -61,10 +63,11 @@ function failureMessage(puzzle: StrategyPuzzle, game: Chess, move: Move | undefi
 
 export default function Strategy({ onBack }: { onBack: () => void }) {
   const { storage } = useAccount();
+  const saved = useSavedTraining<{ puzzleId: string; selected: Square | null; target: Square | null; hintOpen: boolean }>('strategy');
   const [progress, setProgress] = useState(() => readStrategyProgress(storage));
-  const [selected, setSelected] = useState<Square | null>(null);
-  const [promotion, setPromotion] = useState<readonly Move[]>([]);
-  const [hintOpen, setHintOpen] = useState(false);
+  const [selected, setSelected] = useState<Square | null>(() => saved?.puzzleId === progress.puzzleId ? saved.selected : null);
+  const [promotionTarget, setPromotionTarget] = useState<Square | null>(() => saved?.puzzleId === progress.puzzleId ? saved.target : null);
+  const [hintOpen, setHintOpen] = useState(() => saved?.puzzleId === progress.puzzleId && saved.hintOpen);
   const [resultOpen, setResultOpen] = useState(false);
   const [restartCount, setRestartCount] = useState(0);
   const title = useRef<HTMLHeadingElement>(null);
@@ -79,16 +82,24 @@ export default function Strategy({ onBack }: { onBack: () => void }) {
   const legalMoves = useMemo(() => selected && attempt.status === 'playing'
     ? game.moves({ square: selected, verbose: true })
     : [], [attempt.status, game, selected]);
+  const promotion = promotionTarget ? legalMoves.filter((move) => move.to === promotionTarget) : [];
   const targets = [...new Set(legalMoves.map((move) => move.to))];
   const outcome = attempt.status === 'won' || attempt.status === 'lost' ? attempt.status : null;
   const reply = attempt.status === 'reply' ? attempt.move : null;
   const nextPuzzle = strategyPuzzles[puzzleIndex + 1];
+  const checkpoint = useMemo(() => progress.completed.length === strategyPuzzles.length ? null
+    : { puzzleId: progress.puzzleId, selected, target: promotionTarget, hintOpen },
+    [progress, selected, promotionTarget, hintOpen]);
+  useTrainingCheckpoint('strategy', checkpoint, {
+    label: `Испытание ${puzzleIndex + 1} из ${strategyPuzzles.length}`,
+    value: progress.completed.length, total: strategyPuzzles.length, difficulty: puzzle.level,
+  });
 
   useEffect(() => {
     title.current?.focus({ preventScroll: true });
   }, []);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     try {
       storage.setItem(strategyStorageKey, JSON.stringify(progress));
     } catch {
@@ -96,24 +107,16 @@ export default function Strategy({ onBack }: { onBack: () => void }) {
     }
   }, [progress, storage]);
 
-  useEffect(() => {
-    if (!reply) return;
-    const timer = window.setTimeout(() => {
-      setProgress((current) => current === progress ? recordMove(current, puzzle, reply) : current);
-    }, 450);
-    return () => window.clearTimeout(timer);
-  }, [reply, progress, puzzle]);
+  useTrainingDelay(reply ? 450 : null, () => {
+    if (reply) setProgress((current) => current === progress ? recordMove(current, puzzle, reply) : current);
+  }, progress);
 
-  useEffect(() => {
-    if (!outcome) return;
-    const delay = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 290;
-    const timer = window.setTimeout(() => setResultOpen(true), delay);
-    return () => window.clearTimeout(timer);
-  }, [outcome, progress.moves]);
+  const resultDelay = outcome ? (window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 290) : null;
+  useTrainingDelay(resultDelay, () => setResultOpen(true), progress);
 
   function play(move: Move) {
     setSelected(null);
-    setPromotion([]);
+    setPromotionTarget(null);
     setProgress((current) => current === progress ? recordMove(current, puzzle, move.lan) : current);
   }
 
@@ -121,7 +124,7 @@ export default function Strategy({ onBack }: { onBack: () => void }) {
     if (attempt.status !== 'playing') return;
     const matching = legalMoves.filter((move) => move.to === square);
     if (matching.length > 1) {
-      setPromotion(matching);
+      setPromotionTarget(square);
     } else if (matching.length === 1) {
       play(matching[0]);
     } else if (game.get(square)?.color === color) {
@@ -132,7 +135,7 @@ export default function Strategy({ onBack }: { onBack: () => void }) {
   function start(id: string) {
     setProgress((current) => ({ ...current, puzzleId: id, moves: [] }));
     setSelected(null);
-    setPromotion([]);
+    setPromotionTarget(null);
     setHintOpen(false);
     setResultOpen(false);
     setRestartCount((count) => count + 1);
@@ -184,7 +187,7 @@ export default function Strategy({ onBack }: { onBack: () => void }) {
       <p className="strategy-live" role="status">{reply ? 'Ход соперника…' : ''}</p>
 
       {promotion.length > 0 && (
-        <StrategyDialog title="Превращение пешки" cancel={() => setPromotion([])}>
+        <StrategyDialog title="Превращение пешки" cancel={() => setPromotionTarget(null)}>
           <p>Выбери фигуру.</p>
           <div className="strategy-promotion">
             {promotion.map((move) => move.promotion && (

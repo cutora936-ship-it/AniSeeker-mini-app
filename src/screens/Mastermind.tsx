@@ -1,5 +1,5 @@
 import { useAccount } from '../account/current';
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../components/Icon';
 import { displayTime } from '../match/records';
 import {
@@ -7,10 +7,13 @@ import {
   type Clue, type LevelId,
 } from '../mastermind/game';
 import { palette, Peg } from '../mastermind/Peg';
+import { useSavedTraining, useTrainingCheckpoint } from '../training/useCheckpoint';
+import { useTrainingClock, useTrainingDisplay } from '../training/time';
 import './Mastermind.css';
 
 type Guess = { colors: number[]; clue: Clue };
-type Round = { secret: number[]; startedAt: number; history: Guess[]; duration?: number };
+type Round = { secret: number[]; history: Guess[]; duration?: number };
+type Save = { levelId: LevelId; round: Round; draft: (number | null)[]; selected: number | null; elapsed: number };
 const exampleSecret = [0, 1, 2];
 const exampleGuess = [0, 2, 3];
 
@@ -41,16 +44,8 @@ function ClueLegend() {
   );
 }
 
-function Timer({ startedAt }: { startedAt: number }) {
-  const [elapsed, setElapsed] = useState(0);
-  useEffect(() => {
-    const tick = () => setElapsed(performance.now() - startedAt);
-    tick();
-    const timer = window.setInterval(tick, 100);
-    return () => window.clearInterval(timer);
-  }, [startedAt]);
-
-  return <dd>{displayTime(elapsed)}</dd>;
+function Timer({ elapsed }: { elapsed: () => number }) {
+  return <dd>{displayTime(useTrainingDisplay(elapsed, true))}</dd>;
 }
 
 function History({ history, playing }: { history: readonly Guess[]; playing: boolean }) {
@@ -126,16 +121,26 @@ function Rules({ selected, onSelect, onStart }: {
 
 export default function Mastermind({ onBack }: { onBack: () => void }) {
   const { storage } = useAccount();
-  const [levelId, setLevelId] = useState<LevelId>('beginner');
-  const [round, setRound] = useState<Round | null>(null);
+  const saved = useSavedTraining<Save>('mastermind');
+  const [levelId, setLevelId] = useState<LevelId>(() => saved?.levelId ?? 'beginner');
+  const [round, setRound] = useState<Round | null>(() => saved?.round ?? null);
   const [progress, setProgress] = useState(() => readProgress(storage));
-  const [draft, setDraft] = useState<(number | null)[]>([]);
-  const [selected, setSelected] = useState<number | null>(0);
+  const [draft, setDraft] = useState<(number | null)[]>(() => saved?.draft ?? []);
+  const [selected, setSelected] = useState<number | null>(() => saved ? saved.selected : 0);
   const screen = useRef<HTMLElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const resultHeading = useRef<HTMLHeadingElement>(null);
   const level = levels[levelId];
   const phase = !round ? 'rules' : round.duration === undefined ? 'playing' : 'results';
+  const clock = useTrainingClock(saved?.elapsed ?? 0, phase === 'playing');
+  const checkpoint = useMemo<Save | null>(() => round && phase === 'playing'
+    ? { levelId, round, draft, selected, elapsed: 0 }
+    : null, [levelId, round, draft, selected, phase]);
+  const attempts = round?.history.length ?? 0;
+  useTrainingCheckpoint('mastermind', checkpoint, {
+    label: `Попытка ${Math.min(attempts + 1, level.attempts)} из ${level.attempts}`,
+    value: attempts, total: level.attempts, difficulty: level.name,
+  }, (data) => ({ ...data, elapsed: clock.elapsed() }));
   const levelProgress = getLevelProgress(progress, levelId);
   const lastClue = round?.history.at(-1)?.clue;
   const won = lastClue?.exact === level.size;
@@ -155,7 +160,8 @@ export default function Mastermind({ onBack }: { onBack: () => void }) {
     const secret = generateSecret(level, levelProgress.recent);
     setProgress(rememberSecret(storage, progress, levelId, secret));
     resetDraft();
-    setRound({ secret, startedAt: performance.now(), history: [] });
+    clock.reset();
+    setRound({ secret, history: [] });
   }
 
   function choose(color: number) {
@@ -184,7 +190,7 @@ export default function Mastermind({ onBack }: { onBack: () => void }) {
     const history = [...round.history, { colors: draft, clue }];
     const correct = clue.exact === level.size;
     if (correct || history.length === level.attempts) {
-      const duration = performance.now() - round.startedAt;
+      const duration = clock.elapsed();
       setProgress(saveResult(storage, progress, levelId, correct, { attempts: history.length, duration }));
       setRound({ ...round, history, duration });
       return;
@@ -203,7 +209,7 @@ export default function Mastermind({ onBack }: { onBack: () => void }) {
           <dl className="mastermind-stats surface">
             <div><dt>Попытка</dt><dd>{round.history.length + 1} / {level.attempts}</dd></div>
             <div><dt>Осталось</dt><dd>{level.attempts - round.history.length}</dd></div>
-            <div><dt>Время</dt><Timer startedAt={round.startedAt} /></div>
+            <div><dt>Время</dt><Timer elapsed={clock.elapsed} /></div>
           </dl>
           <div className="mastermind-secret" role="group" aria-label={`Секретный код скрыт. Позиций ${level.size}`}>
             <span>Секретный код</span>

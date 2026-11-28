@@ -6,9 +6,12 @@ import { getTelegram } from '../platform/telegram';
 import { ProfileAvatar } from '../profile/ProfileAvatar';
 import { ProfileEditor, type AvatarChange, type ProfileEditorState } from '../profile/ProfileEditor';
 import { readAvatar, readProfile, saveProfile } from '../profile/storage';
+import type { Activity, Character } from '../data/characters';
+import { ContinueTraining } from '../training/ContinueTraining';
 import './Profile.css';
 
-export function Profile({ editor, onEditorChange }: {
+export function Profile({ editor, onEditorChange, onResume }: {
+  onResume: (character: Character, activity: Activity) => void;
   editor: ProfileEditorState;
   onEditorChange: (editor: ProfileEditorState) => void;
 }) {
@@ -71,6 +74,7 @@ export function Profile({ editor, onEditorChange }: {
         <button type="button" className="profile__edit profile-action surface"
           onClick={openEditor}><Icon name="edit" />Редактировать профиль</button>
       </div>
+      <ContinueTraining storage={storage} onResume={onResume} />
       {editor !== 'closed' && (
         <ProfileEditor name={name} image={image} hasAvatar={Boolean(avatarId)} saving={editor === 'saving'}
           onCancel={() => onEditorChange('closed')} onSave={save} />
